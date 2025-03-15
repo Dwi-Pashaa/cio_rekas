@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Pages\CustomerController;
 use App\Http\Controllers\Pages\DashboardController;
 use App\Http\Controllers\Pages\KategoriController;
 use App\Http\Controllers\Pages\ProductController;
@@ -61,6 +62,14 @@ Route::middleware(['auth'])->group(function() {
         Route::get('/{id}/show', [ProductController::class, 'show'])->name('produk.show')->can('edit barang');
         Route::put('/{id}/update', [ProductController::class, 'update'])->name('produk.update')->can('edit barang');
         Route::delete('/{id}/destroy', [ProductController::class, 'destroy'])->name('produk.destroy')->can('hapus barang');
+    });
+
+    Route::prefix('customers')->group(function() {
+        Route::get('/', [CustomerController::class, 'index'])->name('customer.index')->can('lihat pelanggan');
+        Route::post('/store', [CustomerController::class, 'store'])->name('customer.store')->can('tambah pelanggan');
+        Route::get('/{id}/show', [CustomerController::class, 'show'])->name('customer.show')->can('edit pelanggan');
+        Route::put('/{id}/update', [CustomerController::class, 'update'])->name('customer.update')->can('edit pelanggan');
+        Route::delete('/{id}/destroy', [CustomerController::class, 'destroy'])->name('customer.destroy')->can('hapus pelanggan');
     });
 });
 

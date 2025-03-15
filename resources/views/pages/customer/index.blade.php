@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title')
-    Data Barang
+    Data Pelanggan
 @endsection
 
 @push('css')
@@ -49,28 +49,32 @@
                 <thead>
                     <tr>
                         <th class="w-1">No</th>
-                        <th>Kode Barang</th>
-                        <th>Nama Barang</th>
-                        <th>Kategori</th>
-                        <th>Stock</th>
-                        <th>Harga Dasar</th>
-                        <th>Harga Jual</th>
+                        <th>No Serial</th>
+                        <th>Nama Pelanggan</th>
+                        <th>No Telephone</th>
+                        <th>Alamat</th>
+                        <th>Barang</th>
+                        <th>Limit</th>
+                        <th>Type</th>
+                        <th>Status</th>
                         <th>Created</th>
                         <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
-                   @forelse ($products as $item)
+                   @forelse ($customers as $item)
                        <tr>
                             <td>
                                 {{ $loop->iteration }}
                             </td>
                             <td>{{ $item->code }}</td>
                             <td>{{ $item->name }}</td>
-                            <td>{{ $item->categori->name }}</td>
-                            <td>{{ $item->stock }}</td>
-                            <td>{{ number_format($item->base_price) }}</td>
-                            <td>{{ number_format($item->selling_price) }}</td>
+                            <td>{{ $item->telp }}</td>
+                            <td>{{ $item->address }}</td>
+                            <td>{{ optional($item->product)->code }} - {{ optional($item->product)->name }}</td>
+                            <td>{{ $item->limit }}</td>
+                            <td>{{ $item->type }}</td>
+                            <td>{{ $item->status }}</td>
                             <td>{{ \Carbon\Carbon::parse($item->created_at)->format('d/m/Y H:i:s') }}</td>
                             <td>
                                 <a href="javascript:void(0)" onclick="return editModal('{{ $item->id }}')" class="btn btn-outline-warning btn-md">
@@ -85,35 +89,20 @@
                        </tr>
                    @empty
                        <tr>
-                            <td colspan="9" class="text-center">Tidak Ada Data</td>
+                            <td colspan="11" class="text-center">Tidak Ada Data</td>
                        </tr>
                    @endforelse
                 </tbody>
-                <tfoot>
-                    <tr>
-                        <th colspan="5" class="text-center">Keutungan</th>
-                        <th colspan="2">Rp. {{ number_format($products->sum('selling_price') - $products->sum('base_price')) }}</th>
-                        <th colspan="2"></th>
-                    </tr>
-                </tfoot>
-                <tfoot>
-                    <tr>
-                        <th colspan="5" class="text-center">Total</th>
-                        <th>Rp. {{ number_format($products->sum('base_price')) }}</th>
-                        <th>Rp. {{ number_format($products->sum('selling_price')) }}</th>
-                        <th colspan="2"></th>
-                    </tr>
-                </tfoot>
             </table>
         </div>
         <div class="card-footer d-flex align-items-center">
             <p class="m-0 text-secondary">
-                Showing <span>{{ $products->firstItem() }}</span> 
-                to <span>{{ $products->lastItem() }}</span> of
-                <span>{{ $products->total() }}</span> entries
+                Showing <span>{{ $customers->firstItem() }}</span> 
+                to <span>{{ $customers->lastItem() }}</span> of
+                <span>{{ $customers->total() }}</span> entries
             </p>
             <ul class="pagination m-0 ms-auto">
-                {{ $products->links() }}
+                {{ $customers->links() }}
             </ul>
         </div>
     </div>
@@ -121,10 +110,10 @@
 
 @push('modal')
     <div class="modal modal-blur fade" id="modal-simple" tabindex="-1" role="dialog" aria-hidden="true">
-        <div class="modal-dialog modal-1 modal-dialog-centered" role="document">
+        <div class="modal-dialog modal-1 modal-dialog-centered modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Tambah Barang</h5>
+                    <h5 class="modal-title">Tambah Pelanggan</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"
                         aria-label="Close">
                     </button>
@@ -132,40 +121,90 @@
                 <div class="modal-body">
                     <input type="hidden" name="type" id="type">
                     <input type="hidden" name="id" id="id">
-                    <div class="form-group mb-3">
-                        <label for="code" class="mb-2">Kode Barang</label>
-                        <input type="text" name="code" id="code" class="form-control">
-                        <span class="invalid-feedback error_code"></span>
-                    </div>
-                    <div class="form-group mb-3">
-                        <label for="name" class="mb-2">Nama Barang</label>
-                        <input type="text" name="name" id="name" class="form-control">
-                        <span class="invalid-feedback error_name"></span>
-                    </div>
-                    <div class="form-group mb-3">
-                        <label for="categories_id" class="mb-2">Kategori</label>
-                        <select name="categories_id" id="categories_id" class="form-control">
-                            <option value="">Pilih</option>
-                            @foreach ($categories as $ct)
-                                <option value="{{ $ct->id }}">{{ $ct->name }}</option>
-                            @endforeach
-                        </select>
-                        <span class="invalid-feedback error_name"></span>
-                    </div>
-                    <div class="form-group mb-3">
-                        <label for="stock" class="mb-2">Stock</label>
-                        <input type="text" name="stock" id="stock" class="form-control">
-                        <span class="invalid-feedback error_stock"></span>
-                    </div>
-                    <div class="form-group mb-3">
-                        <label for="base_price" class="mb-2">Harga Dasar</label>
-                        <input type="text" name="base_price" id="base_price" class="form-control">
-                        <span class="invalid-feedback error_base_price"></span>
-                    </div>
-                    <div class="form-group mb-3">
-                        <label for="selling_price" class="mb-2">Harga Jual</label>
-                        <input type="text" name="selling_price" id="selling_price" class="form-control">
-                        <span class="invalid-feedback error_selling_price"></span>
+                    <div class="row">
+                        <div class="col-lg-6 col-md-6 col-sm-12">
+                            <div class="form-group mb-3">
+                                <label for="code" class="mb-2">Serial Number</label>
+                                <input type="text" name="code" id="code" class="form-control">
+                                <span class="invalid-feedback error_code"></span>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-6 col-sm-12">
+                            <div class="form-group mb-3">
+                                <label for="name" class="mb-2">Nama Pelanggan</label>
+                                <input type="text" name="name" id="name" class="form-control">
+                                <span class="invalid-feedback error_name"></span>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-6 col-sm-12">
+                            <div class="form-group mb-3">
+                                <label for="telp" class="mb-2">No Telephone</label>
+                                <input type="text" name="telp" id="telp" class="form-control">
+                                <span class="invalid-feedback error_telp"></span>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-6 col-sm-12">
+                            <div class="form-group mb-3">
+                                <label for="address" class="mb-2">Alamat</label>
+                                <input type="text" name="address" id="address" class="form-control">
+                                <span class="invalid-feedback error_address"></span>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-6 col-sm-12">
+                            <div class="form-group mb-3">
+                                <label for="products_id" class="mb-2">Barang</label>
+                                <select name="products_id" id="products_id" class="form-control">
+                                    <option value="">Pilih</option>
+                                    @foreach ($products as $pd)
+                                        <option value="{{ $pd->id }}">{{ $pd->code }} - {{ $pd->name }}</option>
+                                    @endforeach
+                                </select>
+                                <span class="invalid-feedback error_products_id"></span>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-6 col-sm-12">
+                            <div class="form-group mb-3">
+                                <label for="limit" class="mb-2">Limit</label>
+                                <input type="text" name="limit" id="limit" class="form-control">
+                                <span class="invalid-feedback error_limit"></span>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-6 col-sm-12">
+                            <div class="form-group mb-3">
+                                <label for="type_customer" class="mb-2">Type Pelanggan</label>
+                                <select name="type_customer" id="type_customer" class="form-control">
+                                    <option value="">Pilih</option>
+                                    @php
+                                        $types = [
+                                            "beli",
+                                            "titip"
+                                        ];
+                                    @endphp 
+                                    @foreach ($types as $tp)
+                                        <option value="{{ $tp }}">{{ $tp }}</option>
+                                    @endforeach
+                                </select>
+                                <span class="invalid-feedback error_type"></span>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-6 col-sm-12">
+                            <div class="form-group mb-3">
+                                <label for="status" class="mb-2">Status Pelanggan</label>
+                                <select name="status" id="status" class="form-control">
+                                    <option value="">Pilih</option>
+                                    @php
+                                        $status = [
+                                            "terdaftar",
+                                            "tidak"
+                                        ];
+                                    @endphp 
+                                    @foreach ($status as $st)
+                                        <option value="{{ $st }}">{{ $st }}</option>
+                                    @endforeach
+                                </select>
+                                <span class="invalid-feedback error_status"></span>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -179,7 +218,7 @@
 
 @push('js')
 <script>
-    const BASE = "{{ route('produk.index') }}";
+    const BASE = "{{ route('customer.index') }}";
 
     let params = new URLSearchParams(window.location.search);
     $("#sort").change(function() {
@@ -226,13 +265,15 @@
     })
 
     $("#addBtn").click(function() {
-        $(".modal-title").html("Tambah Barang");
+        $(".modal-title").html("Tambah Pelanggan");
         $("#code").val("");
         $("#name").val("");
-        $("#categories_id").val("");
-        $("#stock").val("");
-        $("#base_price").val("");
-        $("#selling_price").val("");
+        $("#telp").val("");
+        $("#address").val("");
+        $("#products_id").val("");
+        $("#limit").val("");
+        $("#type_customer").val("");
+        $("#status").val("")
         $("#type").val("create");
         $("#id").val("");
     });
@@ -242,10 +283,12 @@
         let type = $("#type").val()
         let code = $("#code").val();
         let name = $("#name").val();
-        let categories_id = $("#categories_id").val();
-        let stock = $("#stock").val();
-        let base_price = $("#base_price").val();
-        let selling_price = $("#selling_price").val();
+        let telp = $("#telp").val();
+        let address = $("#address").val();
+        let products_id = $("#products_id").val();
+        let limit = $("#limit").val();
+        let type_customer= $("#type_customer").val();
+        let status = $("#status").val()
 
         let url;
         let method;
@@ -264,10 +307,12 @@
             data: {
                 code: code,
                 name: name,
-                categories_id: categories_id,
-                stock: stock,
-                base_price: base_price,
-                selling_price: selling_price
+                telp: telp,
+                address: address,
+                products_id: products_id,
+                limit: limit,
+                type_customer: type_customer,
+                status: status
             },
         }).done(function(response) {
             if (response.errors) {
@@ -305,17 +350,19 @@
             method: "GET",
             dataType: "json"
         }).done(function(response){
-            $(".modal-title").html("Edit Barang");
+            $(".modal-title").html("Edit Pelanggan");
             let data = response.data;
             $("#modal-simple").modal('show')
 
             $("#id").val(data.id);
             $("#code").val(data.code);
             $("#name").val(data.name);
-            $("#categories_id").val(data.categories_id);
-            $("#stock").val(data.stock);
-            $("#base_price").val(formatRupiah(data.base_price));
-            $("#selling_price").val(formatRupiah(data.selling_price));
+            $("#telp").val(data.telp);
+            $("#address").val(data.address);
+            $("#products_id").val(data.products_id);
+            $("#limit").val(data.limit);
+            $("#type_customer").val(data.type);
+            $("#status").val(data.status)
             $("#type").val("update");
         }).fail(function(jqXHR, textStatus, errorThrown) {
             console.log("Error:", textStatus, errorThrown);

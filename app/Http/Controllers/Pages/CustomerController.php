@@ -3,12 +3,12 @@
 namespace App\Http\Controllers\Pages;
 
 use App\Http\Controllers\Controller;
-use App\Models\Categori;
+use App\Models\Customer;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
-class ProductController extends Controller
+class CustomerController extends Controller
 {
    /**
      * Display a listing of the resource.
@@ -18,19 +18,20 @@ class ProductController extends Controller
         $sort = $request->sort ?? 10;
         $search = $request->search ?? null;
 
-        $products = Product::with(['categori'])->when($search, function ($query, $search) {
+        $customers = Customer::with(['product'])->when($search, function ($query, $search) {
                                 return $query->where('name', 'like', "%$search%")
                                     ->orWhere('code', 'like', "%$search%")
                                     ->orWhere('stock', 'like', "%$search%")
-                                    ->orWhereHas('categori', function($q) use ($search) {
-                                        $q->where('name', 'like', "%$search%");
+                                    ->orWhereHas('product', function($q) use ($search) {
+                                        $q->where('name', 'like', "%$search%")
+                                        ->orWhere('code', 'like', "%$search%");
                                     });
                                 })
                                 ->orderBy('id', 'DESC')
                                 ->paginate($sort);
-        $categories = Categori::select(['id', 'name'])->get();
+        $products = Product::select(['id', 'code', 'name'])->get();
 
-        return view("pages.product.index", compact("products", "categories"));
+        return view("pages.customer.index", compact("customers", "products"));
     }
 
     /**
@@ -39,13 +40,14 @@ class ProductController extends Controller
     public function store(Request $request)
     {
         $validation = Validator::make($request->all(), [
-            "code" => "required|unique:products,code",
+            "products_id" => "required|exists:products,id",
+            "code" => "required|unique:customers,code",
             "name" => "required|string",
-            "categories_id" => "required|exists:categories,id",
-            "stock" => "required|integer|min:0",
-            "base_price" => "required|numeric|min:0",
-            "selling_price" => "required|numeric|min:0"
-
+            "telp" => "required",
+            "address" => "required|string",
+            "limit" => "required|integer|min:1",
+            "type_customer" => "required|string",
+            "status" => "required|string"
         ]);
 
         if ($validation->fails()) {
@@ -58,9 +60,8 @@ class ProductController extends Controller
         }
 
         $post = $request->all();
-        $post['base_price'] = str_replace('.', '', $request->base_price);
-        $post['selling_price'] = str_replace('.', '', $request->selling_price);
-        Product::create($post);
+        $post['type'] = $request->type_customer;
+        Customer::create($post);
 
         return response()->json(['code' => 200, 'status' => 'success', 'message' => 'Berhasil menyimpan data.']);
     }
@@ -70,9 +71,9 @@ class ProductController extends Controller
      */
     public function show(string $id)
     {
-        $products = Product::find($id);
+        $customers = Customer::find($id);
 
-        if (!$products) {
+        if (!$customers) {
             return response()->json([
                 'code' => 400, 
                 'status' => 'error',
@@ -80,7 +81,7 @@ class ProductController extends Controller
             ]);
         }
 
-        return response()->json(['code' => 200, 'status' => 'success', 'data' => $products]);
+        return response()->json(['code' => 200, 'status' => 'success', 'data' => $customers]);
     }
 
     /**
@@ -88,16 +89,17 @@ class ProductController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $products = Product::find($id);
+        $customers = Customer::find($id);
 
         $validation = Validator::make($request->all(), [
-            "code" => "required|unique:products,code," . ($products->id ?? 'NULL') . ",id",
+            "products_id" => "required|exists:products,id",
+            "code" => "required|unique:products,code," . ($customers->id ?? 'NULL') . ",id",
             "name" => "required|string",
-            "categories_id" => "required|exists:categories,id",
-            "stock" => "required|integer|min:0",
-            "base_price" => "required|numeric|min:0",
-            "selling_price" => "required|numeric|min:0"
-
+            "telp" => "required",
+            "address" => "required|string",
+            "limit" => "required|integer|min:1",
+            "type_customer" => "required|string",
+            "status" => "required|string"
         ]);
 
         if ($validation->fails()) {
@@ -110,9 +112,8 @@ class ProductController extends Controller
         }
 
         $put = $request->all();
-        $put['base_price'] = str_replace('.', '', $request->base_price);
-        $put['selling_price'] = str_replace('.', '', $request->selling_price);
-        $products->update($put);
+        $put['type'] = $request->type_customer;
+        $customers->update($put);
 
         return response()->json(['code' => 200, 'status' => 'success', 'message' => 'Berhasil mengubah data.']);
     }
@@ -122,9 +123,9 @@ class ProductController extends Controller
      */
     public function destroy(string $id)
     {
-        $products = Product::find($id);
+        $customers = Customer::find($id);
 
-        if (!$products) {
+        if (!$customers) {
             return response()->json([
                 'code' => 400, 
                 'status' => 'error',
@@ -132,7 +133,7 @@ class ProductController extends Controller
             ]);
         }
 
-        $products->delete();
+        $customers->delete();
 
         return response()->json(['code' => 200, 'status' => 'success', 'message' => 'Berhasil menghapus data.']);
     }
