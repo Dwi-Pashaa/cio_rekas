@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Pages\DashboardController;
+use App\Http\Controllers\Pages\KategoriController;
+use App\Http\Controllers\Pages\ProductController;
 use App\Http\Controllers\Pages\UserController;
 use App\Http\Controllers\Role\PermissionController;
 use App\Http\Controllers\Role\RoleController;
@@ -27,22 +29,38 @@ Route::middleware(['auth'])->group(function() {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     
     Route::prefix('roles')->group(function() {
-        Route::get('/', [RoleController::class, 'index'])->name('roles.index');
-        Route::post('/store', [RoleController::class, 'store'])->name('roles.store');
-        Route::get('/{id}/show', [RoleController::class, 'show'])->name('roles.show');
-        Route::put('/{id}/update', [RoleController::class, 'update'])->name('roles.update');
-        Route::delete('/{id}/destroy', [RoleController::class, 'destroy'])->name('roles.destroy');
-        Route::get('/{id}/permission', [RoleController::class, 'permission'])->name('roles.permission');
-        Route::put('/{id}/savePermission', [RoleController::class, 'savePermission'])->name('roles.savePermission');
+        Route::get('/', [RoleController::class, 'index'])->name('roles.index')->can('lihat level');
+        Route::post('/store', [RoleController::class, 'store'])->name('roles.store')->can('tambah level');
+        Route::get('/{id}/show', [RoleController::class, 'show'])->name('roles.show')->can('edit level');
+        Route::put('/{id}/update', [RoleController::class, 'update'])->name('roles.update')->can('edit level');
+        Route::delete('/{id}/destroy', [RoleController::class, 'destroy'])->name('roles.destroy')->can('hapus level');
+        Route::get('/{id}/permission', [RoleController::class, 'permission'])->name('roles.permission')->can('edit level');
+        Route::put('/{id}/savePermission', [RoleController::class, 'savePermission'])->name('roles.savePermission')->can('edit level');
     });
     
     Route::prefix('users')->group(function() {
-        Route::get('/', [UserController::class, 'index'])->name('user.index');
-        Route::get('/create', [UserController::class, 'create'])->name('user.create');
-        Route::post('/store', [UserController::class, 'store'])->name('user.store');
-        Route::get('/{id}/edit', [UserController::class, 'edit'])->name('user.edit');
-        Route::put('/{id}/update', [UserController::class, 'update'])->name('user.update');
-        Route::delete('/{id}/destroy', [UserController::class, 'destroy'])->name('user.destroy');
+        Route::get('/', [UserController::class, 'index'])->name('user.index')->can('lihat user');
+        Route::get('/create', [UserController::class, 'create'])->name('user.create')->can('tambah user');
+        Route::post('/store', [UserController::class, 'store'])->name('user.store')->can('tambah user');
+        Route::get('/{id}/edit', [UserController::class, 'edit'])->name('user.edit')->can('edit user');
+        Route::put('/{id}/update', [UserController::class, 'update'])->name('user.update')->can('edit user');
+        Route::delete('/{id}/destroy', [UserController::class, 'destroy'])->name('user.destroy')->can('hapus user');
+    });
+
+    Route::prefix('categories')->group(function() {
+        Route::get('/', [KategoriController::class, 'index'])->name('kategori.index')->can('lihat kategori');
+        Route::post('/store', [KategoriController::class, 'store'])->name('kategori.store')->can('tambah kategori');
+        Route::get('/{id}/show', [KategoriController::class, 'show'])->name('kategori.show')->can('edit kategori');
+        Route::put('/{id}/update', [KategoriController::class, 'update'])->name('kategori.update')->can('edit kategori');
+        Route::delete('/{id}/destroy', [KategoriController::class, 'destroy'])->name('kategori.destroy')->can('hapus kategori');
+    });
+
+    Route::prefix('products')->group(function() {
+        Route::get('/', [ProductController::class, 'index'])->name('produk.index')->can('lihat barang');
+        Route::post('/store', [ProductController::class, 'store'])->name('produk.store')->can('tambah barang');
+        Route::get('/{id}/show', [ProductController::class, 'show'])->name('produk.show')->can('edit barang');
+        Route::put('/{id}/update', [ProductController::class, 'update'])->name('produk.update')->can('edit barang');
+        Route::delete('/{id}/destroy', [ProductController::class, 'destroy'])->name('produk.destroy')->can('hapus barang');
     });
 });
 
