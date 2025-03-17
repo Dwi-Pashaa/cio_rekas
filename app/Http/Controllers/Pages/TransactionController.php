@@ -28,6 +28,12 @@ class TransactionController extends Controller
      */
     public function create()
     {
+        $usaha = Usaha::latest()->first();
+
+        if (!$usaha) {
+            return redirect()->route('usaha.index')->with('warning', 'Isi detail usaha terlebih dahulu.');
+        }
+
         return view("pages.transaction.create");
     }
 

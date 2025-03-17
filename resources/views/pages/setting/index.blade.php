@@ -10,6 +10,7 @@
 
 @section('content')
     @include('components.alert.success')
+    @include('components.alert.warning')
 
     <div class="card">
         <div class="card-body">
