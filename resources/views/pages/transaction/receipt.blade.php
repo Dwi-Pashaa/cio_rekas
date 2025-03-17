@@ -24,9 +24,6 @@
             border-top: 1px dashed black;
             margin: 8px 0;
         }
-        .line2 {
-            margin: 20px 0;
-        }
         .info, .items {
             text-align: left;
             margin: 5px 0;
@@ -103,7 +100,7 @@
         {{ $usaha->footer }}
     </p>
     <br>
-    <div class="line2"></div>
+    <div class="line"></div>
     <br>
     <button onclick="window.print();" class="no-print">Cetak</button>
 
