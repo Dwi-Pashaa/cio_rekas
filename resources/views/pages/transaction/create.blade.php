@@ -314,8 +314,6 @@
                         title: response.message
                     });
                 } else {
-                    console.log(response);
-                    
                     appendCustomer( data = null, status = false);
                     appendTransaction( data = null, status = false);
 
