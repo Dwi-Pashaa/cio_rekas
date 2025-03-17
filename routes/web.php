@@ -78,6 +78,7 @@ Route::middleware(['auth'])->group(function() {
         Route::get('/create', [TransactionController::class, 'create'])->name('transaksi.create')->can('tambah transaksi');
         Route::post('/getCustomerBySerialNumber', [TransactionController::class, 'getCustomerBySerialNumber'])->name('transaksi.getCustomerBySerialNumber')->can('tambah transaksi');
         Route::post('/store', [TransactionController::class, 'store'])->name('transaksi.store')->can('tambah transaksi');
+        Route::get('/{id}/receipt', [TransactionController::class, 'show'])->name('transaksi.show')->can('lihat transaksi');
     });
 
     Route::prefix('settings')->group(function() {

@@ -308,23 +308,52 @@
                         $("#" + index).addClass('is-invalid');
                         $(".error_" + index).html(value)
                     })
-                } else {
+                } else if(response.code == 401) {
                     Toast.fire({
-                        icon: 'success',
+                        icon: 'warning',
                         title: response.message
                     });
-    
+                } else {
+                    console.log(response);
+                    
                     appendCustomer( data = null, status = false);
                     appendTransaction( data = null, status = false);
 
-                    $("#code").val("")
+                    $("#code").val("");
                     $("#payment").val("");
-                    $("#return").val("")
+                    $("#return").val("");
+
+                    printReceipt(response.transaction.id);
                 }
 
             }).fail(function(jqXHR, textStatus, errorThrown) {
                 console.log("Error:", textStatus, errorThrown);
             });
         })
+
+        function printReceipt(transactionId) {
+            let receiptUrl = BASE + "/" + transactionId + "/receipt";
+
+            let screenWidth = window.screen.width;
+            let screenHeight = window.screen.height;
+
+            let popupWidth = 1000;
+            let popupHeight = 600;
+
+            let left = (screenWidth - popupWidth) / 2;
+            let top = (screenHeight - popupHeight) / 2;
+
+            let printWindow = window.open(
+                receiptUrl,
+                "_blank",
+                `width=${popupWidth},height=${popupHeight},top=${top},left=${left}`
+            );
+
+            if (printWindow) {
+                printWindow.focus();
+            } else {
+                alert("Izinkan popup di browser untuk mencetak struk.");
+            }
+        }
     </script>
 @endpush

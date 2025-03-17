@@ -66,68 +66,22 @@ class TransactionController extends Controller
             return response()->json(['code' => 400, 'errors' => $validation->errors()]);
         }
 
+        $customers = Customer::where('id', $request->customers_id)->first();
+        $products  = Product::where('id', $request->products_id)->first();
+
+        if ($products->stock <= 0) {
+            return response()->json(['code' => 401, 'status' => 'warning', 'message' => 'Stock barang tidak mencukupi.']);
+        }
+
         $post = $request->all();
         $post['total'] = str_replace('.', '', $request->total);
         $post['payment'] = str_replace('.', '', $request->payment);
 
         $transaction = Transaction::create($post);
 
-        $customers = Customer::where('id', $request->customers_id)->first();
-        $products  = Product::where('id', $request->products_id)->first();
         $products->update(['stock' => $products->stock - $customers->limit]);
-
-        $usaha = Usaha::latest()->first();
-        $name= $usaha->name ?? config('app.name');
-        $address = $usaha->address ?? "-";
-        $footer = $usaha->footer ?? "-";
-        $thermal = $usaha->name_of_thermal ?? "POS-80";
-        $logoPath = public_path($usaha->image ?? "");
-
-        try {
-            $connector = new WindowsPrintConnector($thermal); // Sesuaikan dengan nama printer di komputer Anda
-            $printer = new Printer($connector);
-
-            // 🔹 Memuat & mencetak logo
-            if (file_exists($logoPath)) {
-                $logo = EscposImage::load($logoPath);
-                $printer->graphics($logo);
-            }
-
-            // Header
-            $printer->setJustification(Printer::JUSTIFY_CENTER);
-            $printer->text("$name\n");
-            $printer->text("$address\n");
-            $printer->text("--------------------------------\n");
-
-            // Detail Transaksi
-            $printer->setJustification(Printer::JUSTIFY_LEFT);
-            $printer->text("Tanggal transaksi : " . now()->format('d-m-Y H:i') . "\n");
-            $printer->text("Status : " . $customers->status . "\n");
-            $printer->text("--------------------------------\n");
-
-            // Informasi Penjual
-            $printer->text("Nama Penjual : " . ($customers->name ?? "-") . "\n");
-            $printer->text("Alamat Penjual : " . ($customers->address ?? "-") . "\n");
-            $printer->text("Limit Penjual : " . ($transaction->limit ?? "-") . "\n");
-            $printer->text("Harga : Rp " . number_format($products->selling_price, 0, ',', '.') . "\n");
-
-            $printer->text("--------------------------------\n");
-            $printer->text("Total : Rp " . number_format($transaction->total, 0, ',', '.') . "\n");
-
-            // Footer
-            $printer->text("--------------------------------\n");
-            $printer->setJustification(Printer::JUSTIFY_CENTER);
-            $printer->text("$footer\n");
-
-            // Potong kertas
-            $printer->feed(2);
-            $printer->cut();
-            $printer->close();
-
-            return response()->json(["code" => 200, "message" => "Transaksi berhasil disimpan & struk dicetak!"]);
-        } catch (\Exception $e) {
-            return response()->json(["code" => 500, "error" => "Gagal mencetak: " . $e->getMessage()]);
-        }
+        
+        return response()->json(['code' => 200, 'status' => 'success', 'transaction' => $transaction]);
     }
 
     /**
@@ -135,7 +89,9 @@ class TransactionController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $transaction = Transaction::with(['customer', 'product'])->find($id);
+        $usaha = Usaha::latest()->first();
+        return view("pages.transaction.receipt", compact("transaction", "usaha"));
     }
 
     /**
