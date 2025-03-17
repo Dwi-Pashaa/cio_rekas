@@ -7,7 +7,7 @@
     <style>
         @page {
             size: 48mm auto; /* Ukuran kertas 48mm */
-            margin: 5mm; /* Beri sedikit margin */
+            margin-bottom: 20mm;
         }
         body {
             font-family: Arial, sans-serif;
@@ -17,7 +17,7 @@
             text-align: center;
             display: flex;
             flex-direction: column;
-            min-height: 100mm; /* Memberikan tinggi minimum agar footer tidak mentok */
+            /* min-height: 100mm; Memberikan tinggi minimum agar footer tidak mentok */
             justify-content: space-between;
         }
         .logo {
@@ -79,8 +79,8 @@
 
     <div class="line"></div>
     <div class="items">
-        <p>{{ $transaction->product->name }} x {{ $transaction->qty }}
-        <span style="float: right;">Rp. {{ number_format($transaction->product->selling_price) }}</span></p>
+        <p style="font-size: 11px">{{ $transaction->product->name }} x {{ $transaction->qty }}
+        <span style="float: right; font-size: 11px">Rp. {{ number_format($transaction->product->selling_price) }}</span></p>
     </div>
     <div class="line"></div>
 
