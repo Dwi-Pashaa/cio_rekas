@@ -99,6 +99,7 @@
     <p class="footer">
         {{ $usaha->footer }}
     </p>
+    <div class="line"></div>
     <div style="height: 20mm;"></div>
     <button onclick="window.print();" class="no-print">Cetak</button>
 
