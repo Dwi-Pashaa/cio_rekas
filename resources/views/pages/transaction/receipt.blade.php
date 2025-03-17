@@ -6,26 +6,27 @@
     <title>Struk Transaksi Pembelian</title>
     <style>
         @page {
-            size: 58mm auto; /* Ukuran kertas 58mm */
-            margin: 0; /* Hilangkan margin agar sesuai */
+            size: 48mm auto; /* Ukuran kertas 48mm */
+            margin: 5mm; /* Beri sedikit margin */
         }
         body {
             font-family: Arial, sans-serif;
             font-size: 12px;
-            width: 58mm;
-            padding: 5px;
+            width: 48mm;
+            padding: 10px 5px; /* Tambahkan padding atas & bawah */
             text-align: center;
         }
         .logo {
-            max-width: 100px;
+            max-width: 80px; /* Sesuaikan ukuran logo */
             margin-bottom: 5px;
         }
         .line {
             border-top: 1px dashed black;
-            margin: 5px 0;
+            margin: 8px 0;
         }
-        .items {
+        .info, .items {
             text-align: left;
+            margin: 5px 0;
         }
         .total {
             font-weight: bold;
@@ -35,11 +36,23 @@
             margin-top: 10px;
             font-size: 10px;
         }
+        table {
+            width: 100%;
+        }
+        table td {
+            vertical-align: top;
+        }
+        .left {
+            text-align: left;
+        }
+        .right {
+            text-align: right;
+        }
         @media print {
             body {
-                width: 58mm;
+                width: 48mm;
                 margin: 0;
-                padding: 0;
+                padding: 10px 5px; /* Pastikan tetap ada padding saat cetak */
             }
             .no-print {
                 display: none;
@@ -48,18 +61,40 @@
     </style>
 </head>
 <body>
-    <img src="{{ asset($usaha->image) }}" alt="Logo Toko" class="logo">
-    <p><strong>{{ $usaha->name }}</strong></p>
-    <p>{{ $usaha->address }}</p>
+    {{-- <img src="{{ asset($usaha->image) }}" alt="Logo Toko" class="logo"> --}}
+    <p style="font-size: 14px"><strong>{{ $usaha->name }}</strong></p>
+    <p style="font-size: 10px">{{ $usaha->address }}</p>
+    <div class="line"></div>
+    
+    <div class="info">
+        <p><strong>Tanggal:</strong> {{ date('d-m-Y H:i', strtotime($transaction->created_at)) }}</p>
+        <p><strong>Pelanggan:</strong> {{ $transaction->customer->name }}</p>
+        <p><strong>Alamat:</strong> {{ $transaction->customer->address }}</p>
+    </div>
+
     <div class="line"></div>
     <div class="items">
         <p>{{ $transaction->product->name }} x {{ $transaction->qty }}
         <span style="float: right;">Rp{{ number_format($transaction->product->selling_price) }}</span></p>
     </div>
     <div class="line"></div>
-    <p class="total">Total: <span style="float: right;">Rp{{ number_format($transaction->total) }}</span></p>
-    <p>Pembayaran: <span style="float: right;">Rp{{ number_format($transaction->payment) }}</span></p>
-    <p>Kembalian: <span style="float: right;">Rp{{ number_format($transaction->total - $transaction->payment) }}</span></p>
+
+    <!-- Menggunakan tabel agar teks kiri & angka kanan tetap rapi -->
+    <table>
+        <tr>
+            <td class="left"><strong>Total</strong></td>
+            <td class="right">Rp{{ number_format($transaction->total) }}</td>
+        </tr>
+        <tr>
+            <td class="left">Pembayaran</td>
+            <td class="right">Rp{{ number_format($transaction->payment) }}</td>
+        </tr>
+        <tr>
+            <td class="left">Kembalian</td>
+            <td class="right">Rp{{ number_format($transaction->payment - $transaction->total) }}</td>
+        </tr>
+    </table>
+
     <div class="line"></div>
     <p class="footer">
         {{ $usaha->footer }}

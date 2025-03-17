@@ -48,7 +48,7 @@ class TransactionController extends Controller
         }
 
         $customers->amount = $customers->product->selling_price;
-        $customers->total  = $customers->product->selling_price * $customers->limit;
+        $customers->total = floatval($customers->product->selling_price) * intval($customers->limit);
 
         return response()->json(['code' => 200, 'status' => true, 'data' => $customers]);
     }

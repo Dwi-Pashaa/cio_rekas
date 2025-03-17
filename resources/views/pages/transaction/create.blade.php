@@ -121,6 +121,8 @@
                         data: { code: code },
                         dataType: "json",
                     }).done(function(response) {
+                        console.log(response);
+                        
                         if (response.status == false) {
                             Toast.fire({
                                 icon: 'warning',
