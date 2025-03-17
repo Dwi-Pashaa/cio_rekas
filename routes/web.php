@@ -5,8 +5,9 @@ use App\Http\Controllers\Pages\CustomerController;
 use App\Http\Controllers\Pages\DashboardController;
 use App\Http\Controllers\Pages\KategoriController;
 use App\Http\Controllers\Pages\ProductController;
+use App\Http\Controllers\Pages\TransactionController;
+use App\Http\Controllers\Pages\UsahaController;
 use App\Http\Controllers\Pages\UserController;
-use App\Http\Controllers\Role\PermissionController;
 use App\Http\Controllers\Role\RoleController;
 use Illuminate\Support\Facades\Route;
 
@@ -70,6 +71,18 @@ Route::middleware(['auth'])->group(function() {
         Route::get('/{id}/show', [CustomerController::class, 'show'])->name('customer.show')->can('edit pelanggan');
         Route::put('/{id}/update', [CustomerController::class, 'update'])->name('customer.update')->can('edit pelanggan');
         Route::delete('/{id}/destroy', [CustomerController::class, 'destroy'])->name('customer.destroy')->can('hapus pelanggan');
+    });
+
+    Route::prefix('transaction')->group(function() {
+        Route::get('/', [TransactionController::class, 'index'])->name('transaksi.index')->can('lihat transaksi');
+        Route::get('/create', [TransactionController::class, 'create'])->name('transaksi.create')->can('tambah transaksi');
+        Route::post('/getCustomerBySerialNumber', [TransactionController::class, 'getCustomerBySerialNumber'])->name('transaksi.getCustomerBySerialNumber')->can('tambah transaksi');
+        Route::post('/store', [TransactionController::class, 'store'])->name('transaksi.store')->can('tambah transaksi');
+    });
+
+    Route::prefix('settings')->group(function() {
+        Route::get('/', [UsahaController::class, 'index'])->name('usaha.index');
+        Route::post('/store', [UsahaController::class, 'store'])->name('usaha.store');
     });
 });
 
