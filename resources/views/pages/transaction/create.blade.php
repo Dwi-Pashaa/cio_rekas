@@ -20,7 +20,7 @@
                 <div class="card-body">
                     <div class="form-group mb-3">
                         <label for="" class="mb-2">Searial Number</label>
-                        <input type="text" name="code" id="code" class="form-control">
+                        <input type="text" name="code" id="code" class="form-control" autocomplete="off">
                         <span class="invalid-feedback error_code"></span>
                     </div>
                 </div>
@@ -121,8 +121,6 @@
                         data: { code: code },
                         dataType: "json",
                     }).done(function(response) {
-                        console.log(response);
-                        
                         if (response.status == false) {
                             Toast.fire({
                                 icon: 'warning',
