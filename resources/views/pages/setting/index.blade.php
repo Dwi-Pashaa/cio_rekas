@@ -16,6 +16,7 @@
         <div class="card-body">
             <form action="{{ route('usaha.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
+                <input type="hidden" name="id" id="id" value="{{ $usaha->id ?? "" }}">
                 <div class="form-group mb-3">
                     <label for="" class="mb-2">Nama Usaha</label>
                     <input value="{{ $usaha->name ?? "" }}" type="text" name="name" id="name" class="form-control @error('name') is-invalid @enderror">
