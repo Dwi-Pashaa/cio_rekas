@@ -20,10 +20,6 @@
             /* min-height: 100mm; Memberikan tinggi minimum agar footer tidak mentok */
             justify-content: space-between;
         }
-        .logo {
-            max-width: 80px; 
-            margin-bottom: 5px;
-        }
         .line {
             border-top: 1px dashed black;
             margin: 8px 0;
@@ -103,7 +99,7 @@
     <p class="footer">
         {{ $usaha->footer }}
     </p>
-
+    <div style="height: 20mm;"></div>
     <button onclick="window.print();" class="no-print">Cetak</button>
 
     <script>
