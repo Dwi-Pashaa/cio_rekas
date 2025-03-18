@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers\Pages;
 
+use App\Exports\CustomerExport;
 use App\Http\Controllers\Controller;
 use App\Models\Customer;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Maatwebsite\Excel\Facades\Excel;
 
 class CustomerController extends Controller
 {
@@ -136,5 +138,10 @@ class CustomerController extends Controller
         $customers->delete();
 
         return response()->json(['code' => 200, 'status' => 'success', 'message' => 'Berhasil menghapus data.']);
+    }
+
+    public function export() 
+    {
+        return Excel::download(new CustomerExport, 'Data Pelanggan.xlsx');    
     }
 }

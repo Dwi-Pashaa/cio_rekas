@@ -8,12 +8,11 @@ use App\Models\Customer;
 use App\Models\Product;
 use App\Models\Transaction;
 use App\Models\Usaha;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Facades\Excel;
-use Mike42\Escpos\EscposImage;
-use Mike42\Escpos\PrintConnectors\WindowsPrintConnector;
-use Mike42\Escpos\Printer;
 
 class TransactionController extends Controller
 {
@@ -44,7 +43,36 @@ class TransactionController extends Controller
                         ->orderBy('id', 'DESC')
                         ->paginate($sort);
 
-        return view("pages.transaction.index", compact("transaction"));
+        $incomePerMonth = Transaction::select(
+                            DB::raw('MONTH(created_at) as month'),
+                            DB::raw('SUM(total) as total_income')
+                        )
+                        ->groupBy('month')
+                        ->orderBy('month', 'ASC')
+                        ->get();
+
+        $topCustomers = Transaction::join('customers', 'transactions.customers_id', '=', 'customers.id')
+                        ->select(
+                            'customers.name as customer_name',
+                            DB::raw('SUM(transactions.qty) as total_spent')
+                        )
+                        ->groupBy('customers.id', 'customers.name')
+                        ->orderByDesc('total_spent')
+                        ->limit(5)
+                        ->get();
+
+        $months = [
+            "Januari", "Februari", "Maret", "April", "Mei", "Juni", 
+            "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+        ];
+
+        $incomeData = array_fill(0, 12, 0);
+
+        foreach ($incomePerMonth as $income) {
+            $incomeData[$income->month - 1] = $income->total_income;
+        }
+
+        return view("pages.transaction.index", compact("transaction", "months", "incomeData", "topCustomers"));
     }
 
     /**

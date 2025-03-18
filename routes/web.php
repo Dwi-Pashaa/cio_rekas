@@ -72,6 +72,7 @@ Route::middleware(['auth'])->group(function() {
         Route::get('/{id}/show', [CustomerController::class, 'show'])->name('customer.show')->can('edit pelanggan');
         Route::put('/{id}/update', [CustomerController::class, 'update'])->name('customer.update')->can('edit pelanggan');
         Route::delete('/{id}/destroy', [CustomerController::class, 'destroy'])->name('customer.destroy')->can('hapus pelanggan');
+        Route::get('/export', [CustomerController::class, 'export'])->name('customer.export')->can('lihat pelanggan');
     });
 
     Route::prefix('transaction')->group(function() {
@@ -93,4 +94,3 @@ Route::middleware(['auth'])->group(function() {
         Route::post('/store', [UsahaController::class, 'store'])->name('usaha.store');
     });
 });
-
