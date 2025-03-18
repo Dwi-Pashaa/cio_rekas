@@ -32,8 +32,8 @@ class FinanceController extends Controller
 
     public function export(Request $request) 
     {
-        $start_date = $request->start_date ?? Carbon::now();
-        $end_date = $request->end_date ?? Carbon::now();    
+        $start_date = $request->start_date;
+        $end_date = $request->end_date;    
 
         return Excel::download(new ListTransactionExportFilter($start_date, $end_date), 'Rekap Transaksi - ' . $start_date . $end_date . '.xlsx');
     }
