@@ -85,7 +85,7 @@ Route::middleware(['auth'])->group(function() {
 
     Route::prefix('finances')->group(function() {
         Route::get('/', [FinanceController::class, 'index'])->name('keuangan.index')->can('lihat keuangan');
-        Route::get('/export', [FinanceController::class, 'export'])->name('keuangan.export')->can('lihat keuangan');
+        Route::get('/export/{start_date}/{end_date}', [FinanceController::class, 'export'])->name('keuangan.export')->can('lihat keuangan');
     });
 
     Route::prefix('settings')->group(function() {
