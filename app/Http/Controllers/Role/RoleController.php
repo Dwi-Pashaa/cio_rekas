@@ -118,7 +118,7 @@ class RoleController extends Controller
     public function permission(string $id) 
     {
         $role = Role::findOrFail($id);
-        $permissions = Permission::all();    
+        $permissions = Permission::all(); 
         return view("pages.roles.permission", compact("role", "permissions"));
     }
 

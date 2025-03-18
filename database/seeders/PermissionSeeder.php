@@ -19,7 +19,8 @@ class PermissionSeeder extends Seeder
             'tambah kategori', 'lihat kategori', 'edit kategori', 'hapus kategori',
             'tambah barang', 'lihat barang', 'edit barang', 'hapus barang',
             'tambah pelanggan', 'lihat pelanggan', 'edit pelanggan', 'hapus pelanggan',
-            'tambah transaksi', 'lihat transaksi', 'edit transaksi', 'hapus transaksi'
+            'tambah transaksi', 'lihat transaksi', 'edit transaksi', 'hapus transaksi',
+            'lihat keuangan',
         ];
 
         foreach ($permissions as $permission) {

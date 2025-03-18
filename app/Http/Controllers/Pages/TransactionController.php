@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Pages;
 
+use App\Exports\Transaction\ListTransactionExport;
 use App\Http\Controllers\Controller;
 use App\Models\Customer;
 use App\Models\Product;
@@ -9,6 +10,7 @@ use App\Models\Transaction;
 use App\Models\Usaha;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Maatwebsite\Excel\Facades\Excel;
 use Mike42\Escpos\EscposImage;
 use Mike42\Escpos\PrintConnectors\WindowsPrintConnector;
 use Mike42\Escpos\Printer;
@@ -18,9 +20,31 @@ class TransactionController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        return "List Transaksi";
+        $sort = $request->sort ?? 10;
+        $search = $request->search ?? null;
+
+        $transaction = Transaction::with(['customer', 'product'])
+                        ->when($search, function ($query, $search) {
+                            $query->where(function ($q) use ($search) {
+                                $q->whereHas('customer', function ($q) use ($search) {
+                                    $q->where('name', 'like', "%$search%")
+                                    ->orWhere('code', 'like', "%$search%")
+                                    ->orWhere('address', 'like', "%$search%")
+                                    ->orWhere('status', 'like', "%$search%")
+                                    ->orWhere('telp', 'like', "%$search%");
+                                })
+                                ->orWhereHas('product', function ($q) use ($search) {
+                                    $q->where('name', 'like', "%$search%")
+                                    ->orWhere('code', 'like', "%$search%");
+                                });
+                            });
+                        })
+                        ->orderBy('id', 'DESC')
+                        ->paginate($sort);
+
+        return view("pages.transaction.index", compact("transaction"));
     }
 
     /**
@@ -95,26 +119,10 @@ class TransactionController extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
+     * Export Excel resource from storage.
      */
-    public function edit(string $id)
+    public function export()
     {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+        return Excel::download(new ListTransactionExport, 'List Transaksi.xlsx');
     }
 }

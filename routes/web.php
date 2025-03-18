@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Pages\CustomerController;
 use App\Http\Controllers\Pages\DashboardController;
+use App\Http\Controllers\Pages\FinanceController;
 use App\Http\Controllers\Pages\KategoriController;
 use App\Http\Controllers\Pages\ProductController;
 use App\Http\Controllers\Pages\TransactionController;
@@ -79,6 +80,12 @@ Route::middleware(['auth'])->group(function() {
         Route::post('/getCustomerBySerialNumber', [TransactionController::class, 'getCustomerBySerialNumber'])->name('transaksi.getCustomerBySerialNumber')->can('tambah transaksi');
         Route::post('/store', [TransactionController::class, 'store'])->name('transaksi.store')->can('tambah transaksi');
         Route::get('/{id}/receipt', [TransactionController::class, 'show'])->name('transaksi.show')->can('lihat transaksi');
+        Route::get('/export', [TransactionController::class, 'export'])->name('transaksi.export')->can('lihat transaksi');
+    });
+
+    Route::prefix('finances')->group(function() {
+        Route::get('/', [FinanceController::class, 'index'])->name('keuangan.index')->can('lihat keuangan');
+        Route::get('/export', [FinanceController::class, 'export'])->name('keuangan.export')->can('lihat keuangan');
     });
 
     Route::prefix('settings')->group(function() {
