@@ -33,4 +33,10 @@
             </tr>
         @endforelse
     </tbody>
+    <tfoot>
+        <tr>
+            <th colspan="6" class="text-end">Total</th>
+            <th colspan="4" class="text-center">Rp. {{ number_format($transaction->sum('total')) }}</th>
+        </tr>
+    </tfoot>
 </table>
