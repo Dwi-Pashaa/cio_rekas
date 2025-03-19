@@ -11,6 +11,11 @@ class Transaction extends Model
     protected $table = 'transactions';
     protected $guarded = [];
 
+    public function casier() 
+    {
+        return $this->belongsTo(User::class, 'users_id', 'id');    
+    }
+
     public function customer() 
     {
         return $this->belongsTo(Customer::class, 'customers_id', 'id');    

@@ -10,6 +10,7 @@ use App\Models\Transaction;
 use App\Models\Usaha;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Facades\Excel;
@@ -24,7 +25,7 @@ class TransactionController extends Controller
         $sort = $request->sort ?? 10;
         $search = $request->search ?? null;
 
-        $transaction = Transaction::with(['customer', 'product'])
+        $transaction = Transaction::with(['customer', 'product', 'casier'])
                         ->when($search, function ($query, $search) {
                             $query->where(function ($q) use ($search) {
                                 $q->whereHas('customer', function ($q) use ($search) {
@@ -51,15 +52,15 @@ class TransactionController extends Controller
                         ->orderBy('month', 'ASC')
                         ->get();
 
-        $topCustomers = Transaction::join('customers', 'transactions.customers_id', '=', 'customers.id')
+        $topCustomers = Customer::leftJoin('transactions', 'transactions.customers_id', '=', 'customers.id')
                         ->select(
                             'customers.name as customer_name',
-                            DB::raw('SUM(transactions.qty) as total_spent')
+                            DB::raw('COALESCE(SUM(transactions.qty), 0) as total_spent')
                         )
                         ->groupBy('customers.id', 'customers.name')
                         ->orderByDesc('total_spent')
-                        ->limit(5)
                         ->get();
+                    
 
         $months = [
             "Januari", "Februari", "Maret", "April", "Mei", "Juni", 
@@ -128,6 +129,7 @@ class TransactionController extends Controller
         $post = $request->all();
         $post['total'] = str_replace('.', '', $request->total);
         $post['payment'] = str_replace('.', '', $request->payment);
+        $post['users_id'] = Auth::user()->id;
 
         $transaction = Transaction::create($post);
 

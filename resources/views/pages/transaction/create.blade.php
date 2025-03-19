@@ -289,43 +289,59 @@
             let total = $("#total").val();
             let payment = $("#payment").val();
 
-            $.ajax({
-                url: BASE + '/store',
-                method: "POST",
-                data: {
-                    customers_id: customers_id,
-                    products_id: products_id,
-                    qty: qty,
-                    total: total,
-                    payment: payment
-                },
-                dataType: "json",
-            }).done(function(response) {
-                console.log(response);
+            Swal.fire({
+                title: "Info !",
+                text: "Anda yakin ingin melanjutkan penjualan?",
+                icon: "info",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Ya, Lanjut",
+                cancelButtonText: "Tidak",
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: BASE + '/store',
+                        method: "POST",
+                        data: {
+                            customers_id: customers_id,
+                            products_id: products_id,
+                            qty: qty,
+                            total: total,
+                            payment: payment
+                        },
+                        dataType: "json",
+                    }).done(function(response) {
+                        if (response.code == 400) {
+                            $.each(response.errors, function(index, value) {
+                                $("#" + index).addClass('is-invalid');
+                                $(".error_" + index).html(value)
+                            })
+                        } else if(response.code == 401) {
+                            Toast.fire({
+                                icon: 'warning',
+                                title: response.message
+                            });
+                        } else {
+                            appendCustomer( data = null, status = false);
+                            appendTransaction( data = null, status = false);
 
-                if (response.code == 400) {
-                    $.each(response.errors, function(index, value) {
-                        $("#" + index).addClass('is-invalid');
-                        $(".error_" + index).html(value)
-                    })
-                } else if(response.code == 401) {
-                    Toast.fire({
-                        icon: 'warning',
-                        title: response.message
+                            $("#code").val("");
+                            $("#payment").val("");
+                            $("#return").val("");
+
+                            printReceipt(response.transaction.id);
+
+                            Toast.fire({
+                                icon: "success",
+                                title: "Berhasil Melakukan Penjualan."
+                            });
+                        }
+
+                    }).fail(function(jqXHR, textStatus, errorThrown) {
+                        console.log("Error:", textStatus, errorThrown);
                     });
-                } else {
-                    appendCustomer( data = null, status = false);
-                    appendTransaction( data = null, status = false);
-
-                    $("#code").val("");
-                    $("#payment").val("");
-                    $("#return").val("");
-
-                    printReceipt(response.transaction.id);
                 }
-
-            }).fail(function(jqXHR, textStatus, errorThrown) {
-                console.log("Error:", textStatus, errorThrown);
             });
         })
 

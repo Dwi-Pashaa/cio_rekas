@@ -88,10 +88,11 @@
             </div>
         </div>
     </div>
-    <div class="table-responsive-lg">
+    <div class="table-responsive">
         <table class="table card-table table-vcenter text-nowrap datatable">
             <thead>
                 <tr>
+                    <th>Kasir</th>
                     <th>No Serial</th>
                     <th>Nama Penjual</th>
                     <th>No Telephone</th>
@@ -108,6 +109,11 @@
             <tbody>
                 @forelse ($transaction as $item)
                     <tr>
+                        <td>
+                            <a href="#" class="text-reset" tabindex="-1">
+                                {{ optional($item->casier)->name ?? '-'; }}
+                            </a>
+                        </td>
                         <td>
                             <a href="#" class="text-reset" tabindex="-1">
                                 {{ $item->customer->code }}
@@ -167,7 +173,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="11" class="text-center">Tidak Ada Data</td>
+                        <td colspan="12" class="text-center">Tidak Ada Data</td>
                     </tr>
                 @endforelse
             </tbody>
