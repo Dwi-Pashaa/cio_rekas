@@ -290,7 +290,9 @@
                 series: [{ name: "Total Belanja", data: totalSpent }],
                 xaxis: {
                     categories: topCustomers,
-                    labels: { rotate: -45 }
+                    labels: { rotate: -45 },
+                    tickPlacement: 'on',
+                    scrollbar: { enabled: true },
                 },
                 yaxis: {
                     labels: {

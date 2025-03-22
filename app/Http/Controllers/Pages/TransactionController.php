@@ -60,6 +60,15 @@ class TransactionController extends Controller
                         ->groupBy('customers.id', 'customers.name')
                         ->orderByDesc('total_spent')
                         ->get();
+
+        // $topCustomers = Transaction::join('customers', 'transactions.customers_id', '=', 'customers.id')
+        //                 ->select(
+        //                     'customers.name as customer_name',
+        //                     DB::raw('SUM(transactions.qty) as total_spent')
+        //                 )
+        //                 ->groupBy('customers.id', 'customers.name')
+        //                 ->orderByDesc('total_spent')
+        //                 ->get();
                     
 
         $months = [

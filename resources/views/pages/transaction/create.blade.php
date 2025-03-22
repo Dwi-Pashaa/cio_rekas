@@ -132,7 +132,7 @@
                         } else {
                             appendCustomer(data = response.data, status = true);
                             appendTransaction( data = response.data, status = true);
-                            $("#btnSave").removeAttr("disabled", "disabled");
+                            // $("#btnSave").removeAttr("disabled", "disabled");
                             $("#total").val(formatRupiah(response.data.total))
                             $("#customers_id").val(response.data.id);
                             $("#products_id").val(response.data.product.id);
@@ -240,6 +240,7 @@
                         </div>`;
             }
             $("#append-transaksi").html(html);
+            // $("#btnSave").attr("disabled", "disabled");
         }
 
         $("#payment").keyup(function() {
@@ -325,6 +326,7 @@
                         } else {
                             appendCustomer( data = null, status = false);
                             appendTransaction( data = null, status = false);
+                            $("#btnSave").attr("disabled", "disabled");
 
                             $("#code").val("");
                             $("#payment").val("");
