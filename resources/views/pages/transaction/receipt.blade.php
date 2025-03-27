@@ -70,7 +70,7 @@
         <p><strong>Tanggal:</strong> {{ date('d-m-Y H:i', strtotime($transaction->created_at)) }}</p>
         <p><strong>Penjual:</strong> {{ $transaction->customer->name }}</p>
         <p><strong>Alamat:</strong> {{ $transaction->customer->address }}</p>
-        <p><strong>Status:</strong> {{ $transaction->customer->status }}</p>
+        <p><strong>Status:</strong> {{ optional($transaction->customer->status)->name ?? '-' }}</p>
     </div>
 
     <div class="line"></div>

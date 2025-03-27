@@ -152,7 +152,7 @@ class TransactionController extends Controller
      */
     public function show(string $id)
     {
-        $transaction = Transaction::with(['customer', 'product'])->find($id);
+        $transaction = Transaction::with(['customer', 'customer.type', 'customer.status', 'product'])->find($id);
         $usaha = Usaha::latest()->first();
         return view("pages.transaction.receipt", compact("transaction", "usaha"));
     }
