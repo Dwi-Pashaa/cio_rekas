@@ -50,7 +50,7 @@
                 </div>
             </div>
         </div>
-        <div class="table-responsive-lg">
+        <div class="table-responsive">
             <table class="table card-table table-vcenter text-nowrap datatable">
                 <thead>
                     <tr>
