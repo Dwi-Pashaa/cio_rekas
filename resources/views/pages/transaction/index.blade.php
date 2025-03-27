@@ -12,7 +12,7 @@
 
 @include('components.alert.success')
 
-<div class="row mb-3">
+{{-- <div class="row mb-3">
     <div class="col-lg-4 col-md-4 col-sm-12">
         <div class="card">
             <div class="table-responsive-lg">
@@ -45,7 +45,7 @@
             </div>
         </div>
     </div>
-</div>
+</div> --}}
 
 <div class="card">
     <div class="card-header">
@@ -149,12 +149,12 @@
                         </td>
                         <td>
                             <a href="#" class="text-reset" tabindex="-1">
-                                {{ $item->customer->type }}
+                                {{ optional($item->customer->type)->name ?? '-' }}
                             </a>
                         </td>
                         <td>
                             <a href="#" class="text-reset" tabindex="-1">
-                                {{ $item->customer->status }}
+                                {{ optional($item->customer->status)->name ?? '-' }}
                             </a>
                         </td>
                         <td>

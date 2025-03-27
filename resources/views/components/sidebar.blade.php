@@ -107,7 +107,7 @@
                                     Data Status Pelanggan
                                 </a>
                             @endrole
-                            @can('lihat transaksi')
+                            @can('lihat pelanggan')
                                 <a class="dropdown-item {{ Route::is('customer.index') ? 'active' : '' }}" href="{{ route('customer.index') }}">
                                     List Pelanggan
                                 </a>
@@ -115,7 +115,7 @@
                         </div>
                     </li>
                 @endif
-                @if (auth()->user()->can('lihat transaksi') || auth()->user()->can('tambah transaksi'))
+                @if (auth()->user()->can('lihat transaksi') || auth()->user()->can('tambah transaksi') || auth()->user()->can('lihat grafik transaksi'))
                     <li class="nav-item dropdown {{ Route::is('transaksi*') ? 'active' : '' }}">
                         <a class="nav-link dropdown-toggle" href="#navbar-help" data-bs-toggle="dropdown"
                             data-bs-auto-close="false" role="button" aria-expanded="false">
@@ -135,6 +135,11 @@
                             @can('lihat transaksi')
                                 <a class="dropdown-item" href="{{ route('transaksi.index') }}">
                                     List Transaksi
+                                </a>
+                            @endcan
+                            @can('lihat grafik transaksi')
+                                <a class="dropdown-item" href="{{ route('transaksi.chart') }}">
+                                    Grafik Transaksi
                                 </a>
                             @endcan
                         </div>

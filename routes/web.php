@@ -104,6 +104,8 @@ Route::middleware(['auth'])->group(function() {
         Route::post('/store', [TransactionController::class, 'store'])->name('transaksi.store')->can('tambah transaksi');
         Route::get('/{id}/receipt', [TransactionController::class, 'show'])->name('transaksi.show')->can('lihat transaksi');
         Route::get('/export', [TransactionController::class, 'export'])->name('transaksi.export')->can('lihat transaksi');
+
+        Route::get('/chart', [TransactionController::class, 'chart'])->name('transaksi.chart')->can('lihat grafik transaksi');
     });
 
     Route::prefix('finances')->group(function() {

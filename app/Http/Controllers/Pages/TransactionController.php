@@ -164,4 +164,44 @@ class TransactionController extends Controller
     {
         return Excel::download(new ListTransactionExport, 'List Transaksi.xlsx');
     }
+
+    /**
+     * Display a listing of the resource.
+     */
+    public function chart(Request $request)
+    {
+        $sort = $request->sort ?? 10;
+        $search = $request->search ?? null;
+
+        $incomePerMonth = Transaction::select(
+                            DB::raw('MONTH(created_at) as month'),
+                            DB::raw('SUM(total) as total_income')
+                        )
+                        ->groupBy('month')
+                        ->orderBy('month', 'ASC')
+                        ->get();
+
+        $topCustomers = Customer::leftJoin('transactions', 'transactions.customers_id', '=', 'customers.id')
+                        ->select(
+                            'customers.name as customer_name',
+                            DB::raw('COALESCE(SUM(transactions.qty), 0) as total_spent')
+                        )
+                        ->groupBy('customers.id', 'customers.name')
+                        ->orderByDesc('total_spent')
+                        ->get();
+
+
+        $months = [
+            "Januari", "Februari", "Maret", "April", "Mei", "Juni", 
+            "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+        ];
+
+        $incomeData = array_fill(0, 12, 0);
+
+        foreach ($incomePerMonth as $income) {
+            $incomeData[$income->month - 1] = $income->total_income;
+        }
+
+        return view("pages.transaction.chart.index", compact("months", "incomeData", "topCustomers"));
+    }
 }

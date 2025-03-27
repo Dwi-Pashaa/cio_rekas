@@ -24,7 +24,7 @@ class PermissionSeeder extends Seeder
         // ];
 
         $permissions = [
-            'download excel',
+            'lihat grafik transaksi',
         ];
 
         foreach ($permissions as $permission) {
