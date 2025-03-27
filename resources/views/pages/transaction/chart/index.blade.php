@@ -7,7 +7,7 @@
 @push('css')
     <style>
         .card-over {
-            max-height: 500px; /* Sesuaikan tinggi maksimal */
+            max-height: 1000px; /* Sesuaikan tinggi maksimal */
             overflow-y: auto; /* Pastikan tidak melebihi lebar container */
         }
     </style>
