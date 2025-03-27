@@ -54,7 +54,7 @@
             var customerChart = new ApexCharts(document.getElementById('chart-top-customer'), {
                 chart: {
                     type: "bar",
-                    height: "100%",
+                    height: 1000,
                     toolbar: { show: false }
                 },
                 plotOptions: {
