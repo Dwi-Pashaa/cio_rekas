@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Pages;
 use App\Exports\CustomerExport;
 use App\Http\Controllers\Controller;
 use App\Models\Customer;
+use App\Models\CustomerStatus;
+use App\Models\CustomerType;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -20,20 +22,24 @@ class CustomerController extends Controller
         $sort = $request->sort ?? 10;
         $search = $request->search ?? null;
 
-        $customers = Customer::with(['product'])->when($search, function ($query, $search) {
-                                return $query->where('name', 'like', "%$search%")
-                                    ->orWhere('code', 'like', "%$search%")
-                                    ->orWhere('stock', 'like', "%$search%")
-                                    ->orWhereHas('product', function($q) use ($search) {
-                                        $q->where('name', 'like', "%$search%")
+        $customers = Customer::with(['product', 'type', 'status'])
+                                ->when($search, function ($query, $search) {
+                                    return $query->where('name', 'like', "%$search%")
+                                        ->orWhere('code', 'like', "%$search%")
+                                        ->orWhere('stock', 'like', "%$search%")
+                                        ->orWhereHas('product', function($q) use ($search) {
+                                            $q->where('name', 'like', "%$search%")
                                         ->orWhere('code', 'like', "%$search%");
                                     });
                                 })
                                 ->orderBy('id', 'DESC')
                                 ->paginate($sort);
+        
         $products = Product::select(['id', 'code', 'name'])->get();
+        $customerTypes = CustomerType::select(['id', 'name'])->get();
+        $customerStatus = CustomerStatus::select(['id', 'name'])->get();
 
-        return view("pages.customer.index", compact("customers", "products"));
+        return view("pages.customer.index", compact("customers", "products", "customerTypes", "customerStatus"));
     }
 
     /**
@@ -48,8 +54,8 @@ class CustomerController extends Controller
             "telp" => "required",
             "address" => "required|string",
             "limit" => "required|integer|min:1",
-            "type_customer" => "required|string",
-            "status" => "required|string"
+            "types_id" => "required",
+            "status_id" => "required"
         ]);
 
         if ($validation->fails()) {
@@ -100,8 +106,8 @@ class CustomerController extends Controller
             "telp" => "required",
             "address" => "required|string",
             "limit" => "required|integer|min:1",
-            "type_customer" => "required|string",
-            "status" => "required|string"
+            "types_id" => "required",
+            "status_id" => "required"
         ]);
 
         if ($validation->fails()) {

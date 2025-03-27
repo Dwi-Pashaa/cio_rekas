@@ -25,8 +25,8 @@
                 <td>{{ $item->address }}</td>
                 <td>{{ optional($item->product)->code }} - {{ optional($item->product)->name }}</td>
                 <td>{{ $item->limit }}</td>
-                <td>{{ $item->type }}</td>
-                <td>{{ $item->status }}</td>
+                <td>{{ optional($item->type)->name ?? '-' }}</td>
+                <td>{{ optional($item->status)->name ?? '-' }}</td>
                 <td>{{ \Carbon\Carbon::parse($item->created_at)->format('d/m/Y H:i:s') }}</td>
            </tr>
        @empty

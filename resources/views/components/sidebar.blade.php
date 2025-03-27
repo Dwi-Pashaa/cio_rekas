@@ -86,8 +86,9 @@
                     </li>
                 @endif
                 @if (auth()->user()->can('lihat pelanggan'))
-                    <li class="nav-item {{ Route::is('customer*') ? 'active' : '' }}">
-                        <a class="nav-link" href="{{ route('customer.index') }}">
+                    <li class="nav-item dropdown {{ request()->is('module-customer*') ? 'active' : '' }}">
+                        <a class="nav-link dropdown-toggle" href="#navbar-help" data-bs-toggle="dropdown"
+                            data-bs-auto-close="false" role="button" aria-expanded="false">
                             <span class="nav-link-icon d-md-none d-lg-inline-block">
                                 <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-users-group"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10 13a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M8 21v-1a2 2 0 0 1 2 -2h4a2 2 0 0 1 2 2v1" /><path d="M15 5a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M17 10h2a2 2 0 0 1 2 2v1" /><path d="M5 5a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M3 13v-1a2 2 0 0 1 2 -2h2" /></svg>
                             </span>
@@ -95,6 +96,23 @@
                                 Data Pelanggan
                             </span>
                         </a>
+                        <div class="dropdown-menu">
+                            @role('Admin')
+                                <a class="dropdown-item {{ Route::Is('costumer.type.index') ? 'active' : '' }}" href="{{ route('costumer.type.index') }}">
+                                    Data Type Pelanggan
+                                </a>
+                            @endrole
+                            @role('Admin')
+                                <a class="dropdown-item" {{ Route::Is('costumer.status.index') ? 'active' : '' }}" href="{{ route('costumer.status.index') }}">
+                                    Data Status Pelanggan
+                                </a>
+                            @endrole
+                            @can('lihat transaksi')
+                                <a class="dropdown-item {{ Route::is('customer.index') ? 'active' : '' }}" href="{{ route('customer.index') }}">
+                                    List Pelanggan
+                                </a>
+                            @endcan
+                        </div>
                     </li>
                 @endif
                 @if (auth()->user()->can('lihat transaksi') || auth()->user()->can('tambah transaksi'))

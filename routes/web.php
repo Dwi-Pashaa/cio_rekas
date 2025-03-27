@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Pages\Customer\StatusController;
+use App\Http\Controllers\Pages\Customer\TypeController;
 use App\Http\Controllers\Pages\CustomerController;
 use App\Http\Controllers\Pages\DashboardController;
 use App\Http\Controllers\Pages\FinanceController;
@@ -66,13 +68,33 @@ Route::middleware(['auth'])->group(function() {
         Route::delete('/{id}/destroy', [ProductController::class, 'destroy'])->name('produk.destroy')->can('hapus barang');
     });
 
-    Route::prefix('customers')->group(function() {
-        Route::get('/', [CustomerController::class, 'index'])->name('customer.index')->can('lihat pelanggan');
-        Route::post('/store', [CustomerController::class, 'store'])->name('customer.store')->can('tambah pelanggan');
-        Route::get('/{id}/show', [CustomerController::class, 'show'])->name('customer.show')->can('edit pelanggan');
-        Route::put('/{id}/update', [CustomerController::class, 'update'])->name('customer.update')->can('edit pelanggan');
-        Route::delete('/{id}/destroy', [CustomerController::class, 'destroy'])->name('customer.destroy')->can('hapus pelanggan');
-        Route::get('/export', [CustomerController::class, 'export'])->name('customer.export')->can('lihat pelanggan');
+    Route::prefix('module-customer')->group(function() {
+        Route::middleware(['role:Admin'])->group(function() {
+            Route::prefix('types')->group(function() {
+                Route::get('/', [TypeController::class, 'index'])->name('costumer.type.index');
+                Route::post('/store', [TypeController::class, 'store'])->name('customer.type.store');
+                Route::get('/{id}/show', [TypeController::class, 'show'])->name('customer.type.show');
+                Route::put('/{id}/update', [TypeController::class, 'update'])->name('customer.type.update');
+                Route::delete('/{id}/destroy', [TypeController::class, 'destroy'])->name('customer.type.destroy');
+            });
+
+            Route::prefix('status')->group(function() {
+                Route::get('/', [StatusController::class, 'index'])->name('costumer.status.index');
+                Route::post('/store', [StatusController::class, 'store'])->name('customer.status.store');
+                Route::get('/{id}/show', [StatusController::class, 'show'])->name('customer.status.show');
+                Route::put('/{id}/update', [StatusController::class, 'update'])->name('customer.status.update');
+                Route::delete('/{id}/destroy', [StatusController::class, 'destroy'])->name('customer.status.destroy');
+            });
+        });
+        
+        Route::prefix('customers')->group(function() {
+            Route::get('/', [CustomerController::class, 'index'])->name('customer.index')->can('lihat pelanggan');
+            Route::post('/store', [CustomerController::class, 'store'])->name('customer.store')->can('tambah pelanggan');
+            Route::get('/{id}/show', [CustomerController::class, 'show'])->name('customer.show')->can('edit pelanggan');
+            Route::put('/{id}/update', [CustomerController::class, 'update'])->name('customer.update')->can('edit pelanggan');
+            Route::delete('/{id}/destroy', [CustomerController::class, 'destroy'])->name('customer.destroy')->can('hapus pelanggan');
+            Route::get('/export', [CustomerController::class, 'export'])->name('customer.export')->can('lihat pelanggan');
+        });
     });
 
     Route::prefix('transaction')->group(function() {

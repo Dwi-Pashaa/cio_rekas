@@ -14,7 +14,7 @@ class CustomerExport implements FromView
     public function view(): View
     {
         return view('export.customer', [
-            'customers' => Customer::with(['product'])->orderBy('id', 'DESC')->get()
+            'customers' => Customer::with(['product', 'type', 'status'])->orderBy('id', 'DESC')->get()
         ]);
     }
 }
