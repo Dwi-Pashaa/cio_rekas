@@ -5,7 +5,12 @@
 @endsection
 
 @push('css')
-    
+    <style>
+        .card-over {
+            max-height: 100%; /* Sesuaikan tinggi maksimal */
+            overflow-y: auto; /* Pastikan tidak melebihi lebar container */
+        }
+    </style>
 @endpush
 
 @section('content')
@@ -34,7 +39,7 @@
         </div>
         <div class="col-lg-8 col-md-8 col-sm-12">
             <div class="card">
-                <div class="card-body">
+                <div class="card-body card-over">
                     <div class="d-flex">
                         <h3 class="card-title">Grafik Pembelian Terbanyak</h3>
                     </div>
