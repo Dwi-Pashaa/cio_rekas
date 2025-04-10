@@ -160,7 +160,7 @@
                 $.ajax({
                     url: BASE + '/getCustomerBySerialNumber',
                     method: "POST",
-                    data: { code: code },
+                    data: { code: decodedText },
                     dataType: "json",
                 }).done(function(response) {
                     if (response.status == false) {
