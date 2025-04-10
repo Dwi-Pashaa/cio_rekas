@@ -28,12 +28,12 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [LoginController::class, 'index'])->name('login');
 Route::post('/login', [LoginController::class, 'login'])->name('post.login');
 
-Route::middleware(['auth'])->group(function() {
+Route::middleware(['auth'])->group(function () {
     Route::get('/logout', [LoginController::class, 'logout'])->name('logout');
-    
+
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    
-    Route::prefix('roles')->group(function() {
+
+    Route::prefix('roles')->group(function () {
         Route::get('/', [RoleController::class, 'index'])->name('roles.index')->can('lihat level');
         Route::post('/store', [RoleController::class, 'store'])->name('roles.store')->can('tambah level');
         Route::get('/{id}/show', [RoleController::class, 'show'])->name('roles.show')->can('edit level');
@@ -42,8 +42,8 @@ Route::middleware(['auth'])->group(function() {
         Route::get('/{id}/permission', [RoleController::class, 'permission'])->name('roles.permission')->can('edit level');
         Route::put('/{id}/savePermission', [RoleController::class, 'savePermission'])->name('roles.savePermission')->can('edit level');
     });
-    
-    Route::prefix('users')->group(function() {
+
+    Route::prefix('users')->group(function () {
         Route::get('/', [UserController::class, 'index'])->name('user.index')->can('lihat user');
         Route::get('/create', [UserController::class, 'create'])->name('user.create')->can('tambah user');
         Route::post('/store', [UserController::class, 'store'])->name('user.store')->can('tambah user');
@@ -52,7 +52,7 @@ Route::middleware(['auth'])->group(function() {
         Route::delete('/{id}/destroy', [UserController::class, 'destroy'])->name('user.destroy')->can('hapus user');
     });
 
-    Route::prefix('categories')->group(function() {
+    Route::prefix('categories')->group(function () {
         Route::get('/', [KategoriController::class, 'index'])->name('kategori.index')->can('lihat kategori');
         Route::post('/store', [KategoriController::class, 'store'])->name('kategori.store')->can('tambah kategori');
         Route::get('/{id}/show', [KategoriController::class, 'show'])->name('kategori.show')->can('edit kategori');
@@ -60,7 +60,7 @@ Route::middleware(['auth'])->group(function() {
         Route::delete('/{id}/destroy', [KategoriController::class, 'destroy'])->name('kategori.destroy')->can('hapus kategori');
     });
 
-    Route::prefix('products')->group(function() {
+    Route::prefix('products')->group(function () {
         Route::get('/', [ProductController::class, 'index'])->name('produk.index')->can('lihat barang');
         Route::post('/store', [ProductController::class, 'store'])->name('produk.store')->can('tambah barang');
         Route::get('/{id}/show', [ProductController::class, 'show'])->name('produk.show')->can('edit barang');
@@ -68,9 +68,9 @@ Route::middleware(['auth'])->group(function() {
         Route::delete('/{id}/destroy', [ProductController::class, 'destroy'])->name('produk.destroy')->can('hapus barang');
     });
 
-    Route::prefix('module-customer')->group(function() {
-        Route::middleware(['role:Admin'])->group(function() {
-            Route::prefix('types')->group(function() {
+    Route::prefix('module-customer')->group(function () {
+        Route::middleware(['role:Admin'])->group(function () {
+            Route::prefix('types')->group(function () {
                 Route::get('/', [TypeController::class, 'index'])->name('costumer.type.index');
                 Route::post('/store', [TypeController::class, 'store'])->name('customer.type.store');
                 Route::get('/{id}/show', [TypeController::class, 'show'])->name('customer.type.show');
@@ -78,7 +78,7 @@ Route::middleware(['auth'])->group(function() {
                 Route::delete('/{id}/destroy', [TypeController::class, 'destroy'])->name('customer.type.destroy');
             });
 
-            Route::prefix('status')->group(function() {
+            Route::prefix('status')->group(function () {
                 Route::get('/', [StatusController::class, 'index'])->name('costumer.status.index');
                 Route::post('/store', [StatusController::class, 'store'])->name('customer.status.store');
                 Route::get('/{id}/show', [StatusController::class, 'show'])->name('customer.status.show');
@@ -86,8 +86,8 @@ Route::middleware(['auth'])->group(function() {
                 Route::delete('/{id}/destroy', [StatusController::class, 'destroy'])->name('customer.status.destroy');
             });
         });
-        
-        Route::prefix('customers')->group(function() {
+
+        Route::prefix('customers')->group(function () {
             Route::get('/', [CustomerController::class, 'index'])->name('customer.index')->can('lihat pelanggan');
             Route::post('/store', [CustomerController::class, 'store'])->name('customer.store')->can('tambah pelanggan');
             Route::get('/{id}/show', [CustomerController::class, 'show'])->name('customer.show')->can('edit pelanggan');
@@ -97,7 +97,7 @@ Route::middleware(['auth'])->group(function() {
         });
     });
 
-    Route::prefix('transaction')->group(function() {
+    Route::prefix('transaction')->group(function () {
         Route::get('/', [TransactionController::class, 'index'])->name('transaksi.index')->can('lihat transaksi');
         Route::get('/create', [TransactionController::class, 'create'])->name('transaksi.create')->can('tambah transaksi');
         Route::post('/getCustomerBySerialNumber', [TransactionController::class, 'getCustomerBySerialNumber'])->name('transaksi.getCustomerBySerialNumber')->can('tambah transaksi');
@@ -108,12 +108,12 @@ Route::middleware(['auth'])->group(function() {
         Route::get('/chart', [TransactionController::class, 'chart'])->name('transaksi.chart')->can('lihat grafik transaksi');
     });
 
-    Route::prefix('finances')->group(function() {
+    Route::prefix('finances')->group(function () {
         Route::get('/', [FinanceController::class, 'index'])->name('keuangan.index')->can('lihat keuangan');
         Route::get('/export/{start_date}/{end_date}', [FinanceController::class, 'export'])->name('keuangan.export')->can('lihat keuangan');
     });
 
-    Route::prefix('settings')->group(function() {
+    Route::prefix('settings')->group(function () {
         Route::get('/', [UsahaController::class, 'index'])->name('usaha.index');
         Route::post('/store', [UsahaController::class, 'store'])->name('usaha.store');
     });

@@ -13,17 +13,33 @@ class PermissionSeeder extends Seeder
      */
     public function run(): void
     {
-        // $permissions = [
-        //     'tambah level', 'lihat level', 'edit level', 'hapus level',
-        //     'tambah user', 'lihat user', 'edit user', 'hapus user',
-        //     'tambah kategori', 'lihat kategori', 'edit kategori', 'hapus kategori',
-        //     'tambah barang', 'lihat barang', 'edit barang', 'hapus barang',
-        //     'tambah pelanggan', 'lihat pelanggan', 'edit pelanggan', 'hapus pelanggan',
-        //     'tambah transaksi', 'lihat transaksi', 'edit transaksi', 'hapus transaksi',
-        //     'lihat keuangan', 'download excel',
-        // ];
-
         $permissions = [
+            'tambah level',
+            'lihat level',
+            'edit level',
+            'hapus level',
+            'tambah user',
+            'lihat user',
+            'edit user',
+            'hapus user',
+            'tambah kategori',
+            'lihat kategori',
+            'edit kategori',
+            'hapus kategori',
+            'tambah barang',
+            'lihat barang',
+            'edit barang',
+            'hapus barang',
+            'tambah pelanggan',
+            'lihat pelanggan',
+            'edit pelanggan',
+            'hapus pelanggan',
+            'tambah transaksi',
+            'lihat transaksi',
+            'edit transaksi',
+            'hapus transaksi',
+            'lihat keuangan',
+            'download excel',
             'lihat grafik transaksi',
         ];
 

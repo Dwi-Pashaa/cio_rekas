@@ -55,7 +55,7 @@
                 <thead>
                     <tr>
                         <th class="w-1">No</th>
-                        <th>No Serial</th>
+                        <th>Barcode</th>
                         <th>Nama Pelanggan</th>
                         <th>No Telephone</th>
                         <th>Alamat</th>
@@ -73,7 +73,9 @@
                             <td>
                                 {{ $loop->iteration }}
                             </td>
-                            <td>{{ $item->code }}</td>
+                            <td>
+                                <img src="data:image/png;base64,{{ DNS1D::getBarcodePNG($item->code, 'C128') }}" alt="barcode" />
+                            </td>
                             <td>{{ $item->name }}</td>
                             <td>{{ $item->telp }}</td>
                             <td>{{ $item->address }}</td>
