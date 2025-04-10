@@ -182,6 +182,11 @@
                     }
                 }).fail(function(jqXHR, textStatus, errorThrown) {
                     console.log("Error:", textStatus, errorThrown);
+                }).always(function () {
+                    qrScanner.stop().then(() => {
+                        document.getElementById("reader").innerHTML = "";
+                        startQRScanner(currentCameraId);
+                    });
                 });
 
                 qrScanner.stop().then(() => {
