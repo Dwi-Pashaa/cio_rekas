@@ -8,13 +8,14 @@ use App\Models\Customer;
 use App\Models\CustomerStatus;
 use App\Models\CustomerType;
 use App\Models\Product;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Maatwebsite\Excel\Facades\Excel;
 
 class CustomerController extends Controller
 {
-   /**
+    /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
@@ -23,18 +24,18 @@ class CustomerController extends Controller
         $search = $request->search ?? null;
 
         $customers = Customer::with(['product', 'type', 'status'])
-                                ->when($search, function ($query, $search) {
-                                    return $query->where('name', 'like', "%$search%")
-                                        ->orWhere('code', 'like', "%$search%")
-                                        ->orWhere('stock', 'like', "%$search%")
-                                        ->orWhereHas('product', function($q) use ($search) {
-                                            $q->where('name', 'like', "%$search%")
-                                        ->orWhere('code', 'like', "%$search%");
-                                    });
-                                })
-                                ->orderBy('id', 'DESC')
-                                ->paginate($sort);
-        
+            ->when($search, function ($query, $search) {
+                return $query->where('name', 'like', "%$search%")
+                    ->orWhere('code', 'like', "%$search%")
+                    ->orWhere('stock', 'like', "%$search%")
+                    ->orWhereHas('product', function ($q) use ($search) {
+                        $q->where('name', 'like', "%$search%")
+                            ->orWhere('code', 'like', "%$search%");
+                    });
+            })
+            ->orderBy('id', 'DESC')
+            ->paginate($sort);
+
         $products = Product::select(['id', 'code', 'name'])->get();
         $customerTypes = CustomerType::select(['id', 'name'])->get();
         $customerStatus = CustomerStatus::select(['id', 'name'])->get();
@@ -60,7 +61,7 @@ class CustomerController extends Controller
 
         if ($validation->fails()) {
             return response()->json([
-                'code' => 400, 
+                'code' => 400,
                 'status' => 'error',
                 'message' => 'Opps ada yang belum di isi.',
                 'errors' => $validation->errors()
@@ -79,15 +80,17 @@ class CustomerController extends Controller
      */
     public function show(string $id)
     {
-        $customers = Customer::find($id);
+        $customers = Customer::with(['product', 'type', 'status'])->find($id);
 
         if (!$customers) {
             return response()->json([
-                'code' => 400, 
+                'code' => 400,
                 'status' => 'error',
                 'message' => 'Data Not Found.',
             ]);
         }
+
+        $customers->created = Carbon::parse($customers->created_at)->translatedFormat('d/F/Y H:i:s');
 
         return response()->json(['code' => 200, 'status' => 'success', 'data' => $customers]);
     }
@@ -112,7 +115,7 @@ class CustomerController extends Controller
 
         if ($validation->fails()) {
             return response()->json([
-                'code' => 400, 
+                'code' => 400,
                 'status' => 'error',
                 'message' => 'Opps ada yang belum di isi.',
                 'errors' => $validation->errors()
@@ -135,7 +138,7 @@ class CustomerController extends Controller
 
         if (!$customers) {
             return response()->json([
-                'code' => 400, 
+                'code' => 400,
                 'status' => 'error',
                 'message' => 'Data Not Found.',
             ]);
@@ -146,8 +149,8 @@ class CustomerController extends Controller
         return response()->json(['code' => 200, 'status' => 'success', 'message' => 'Berhasil menghapus data.']);
     }
 
-    public function export() 
+    public function export()
     {
-        return Excel::download(new CustomerExport, 'Data Pelanggan.xlsx');    
+        return Excel::download(new CustomerExport, 'Data Pelanggan.xlsx');
     }
 }

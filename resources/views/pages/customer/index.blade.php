@@ -85,6 +85,10 @@
                             <td>{{ optional($item->status)->name ?? '-' }}</td>
                             <td>{{ \Carbon\Carbon::parse($item->created_at)->format('d/m/Y H:i:s') }}</td>
                             <td>
+                                <a href="javascript:void(0)" onclick="return memberCard('{{ $item->id }}')" class="btn btn-outline-primary btn-md">
+                                    <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-user-scan"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10 9a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M4 8v-2a2 2 0 0 1 2 -2h2" /><path d="M4 16v2a2 2 0 0 0 2 2h2" /><path d="M16 4h2a2 2 0 0 1 2 2v2" /><path d="M16 20h2a2 2 0 0 0 2 -2v-2" /><path d="M8 16a2 2 0 0 1 2 -2h4a2 2 0 0 1 2 2" /></svg>
+                                    Member
+                                </a>
                                 <a href="javascript:void(0)" onclick="return editModal('{{ $item->id }}')" class="btn btn-outline-warning btn-md">
                                     <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-edit"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1" /><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z" /><path d="M16 5l3 3" /></svg>
                                     Edit
@@ -210,9 +214,54 @@
             </div>
         </div>
     </div>
+
+    <div class="modal modal-blur fade" id="modal-member" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-1 modal-dialog-centered modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Kartu Member</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                        aria-label="Close">
+                    </button>
+                </div>
+                <div class="modal-body" id="wrapper">
+                    <div class="card shadow rounded-2" style="border-top: 3px solid #f15a24;">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h5 class="text-orange fw-bold">Member</h5>
+                                    <p class="mb-1 text-danger"><strong>Serial Code #:</strong> <span id="serial"></span></p>
+                                    <p class="mb-1"><strong>Nama Pelanggan:</strong> <span id="name_customer"></span></p>
+                                    <p class="mb-1"><strong>Barang: </strong> <span id="brg"></span></p>
+                                    <p class="mb-1"><strong>Limit: </strong> <span id="lmt"></span></p>
+                                    <p class="mb-1"><strong>Type: </strong> <span id="typ"></span></p>
+                                    <p class="mb-1"><strong>Status: </strong> <span id="sts"></span></p>
+                                    <p class="mb-3"><strong>Terdaftar:</strong> <span id="created"></span></p>
+                                </div>
+                                <span class="text-center mt-3" id="serial_show"></span>
+                                <svg id="barcodeMember"></svg>
+                            </div>
+                        </div>
+
+                        {{-- <div class="card-footer text-end bg-white border-0">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/71/Louisiana_Healthcare_Connections_logo.svg/320px-Louisiana_Healthcare_Connections_logo.svg.png" alt="Logo" style="height: 30px;">
+                        </div> --}}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" onclick="return downloadWrapperImage()" class="btn btn-primary">
+                        <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-download"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2" /><path d="M7 11l5 5l5 -5" /><path d="M12 4l0 12" /></svg>
+                        Download Kartu Member
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 @endpush
 
 @push('js')
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script>
     const BASE = "{{ route('customer.index') }}";
 
@@ -399,6 +448,48 @@
                     }
                 })
             }
+        });
+    }
+
+    function memberCard(id) {
+        let url = BASE + `/${id}/show`
+        $.ajax({
+            url: url,
+            method: "GET",
+            dataType: "json"
+        }).done(function(response){
+            let data = response.data;
+            console.log(data);
+            
+            $("#modal-member").modal('show');
+
+            $("#serial").html(data.code);
+            $("#name_customer").html(data.name);
+            $("#brg").html(data.product.name);
+            $("#lmt").html(data.limit);
+            $("#typ").html(data.type.name);
+            $("#sts").html(data.status.name);
+            $("#created").html(data.created);
+
+            JsBarcode("#barcodeMember", data.code, {
+                format: "CODE128",
+                displayValue: true
+            });
+        }).fail(function(jqXHR, textStatus, errorThrown) {
+            console.log("Error:", textStatus, errorThrown);
+        });
+    }
+
+    function downloadWrapperImage() {
+        const element = document.getElementById('wrapper');
+        html2canvas(element, {
+            scale: 2, 
+            useCORS: true
+        }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = 'kartu-member.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
         });
     }
 </script>
