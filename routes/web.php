@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Pages\BranchController;
 use App\Http\Controllers\Pages\Customer\StatusController;
 use App\Http\Controllers\Pages\Customer\TypeController;
 use App\Http\Controllers\Pages\CustomerController;
@@ -50,6 +51,14 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/{id}/edit', [UserController::class, 'edit'])->name('user.edit')->can('edit user');
         Route::put('/{id}/update', [UserController::class, 'update'])->name('user.update')->can('edit user');
         Route::delete('/{id}/destroy', [UserController::class, 'destroy'])->name('user.destroy')->can('hapus user');
+    });
+
+    Route::prefix('branch')->group(function () {
+        Route::get('/', [BranchController::class, 'index'])->name('branch.index')->can('lihat cabang');
+        Route::post('/store', [BranchController::class, 'store'])->name('branch.store')->can('tambah cabang');
+        Route::get('/{id}/show', [BranchController::class, 'show'])->name('branch.show')->can('edit cabang');
+        Route::put('/{id}/update', [BranchController::class, 'update'])->name('branch.update')->can('edit cabang');
+        Route::delete('/{id}/destroy', [BranchController::class, 'destroy'])->name('branch.destroy')->can('hapus cabang');
     });
 
     Route::prefix('categories')->group(function () {

@@ -68,7 +68,7 @@
                 </div>
             @endif
         @endcan
-        <div class="table-responsive-lg">
+        <div class="table-responsive">
             <table class="table card-table table-vcenter text-nowrap datatable">
                 <thead>
                     <tr>
@@ -122,12 +122,12 @@
                             </td>
                             <td>
                                 <a href="#" class="text-reset" tabindex="-1">
-                                    {{ $item->customer->type }}
+                                    {{ $item->customer->type->name ?? '-' }}
                                 </a>
                             </td>
                             <td>
                                 <a href="#" class="text-reset" tabindex="-1">
-                                    {{ $item->customer->status }}
+                                    {{ $item->customer->status->name ?? '-' }}
                                 </a>
                             </td>
                             <td>

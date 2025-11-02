@@ -61,30 +61,43 @@
                         </li>
                     @endif
                 @endrole
-                @if (auth()->user()->can('lihat kategori'))
-                    <li class="nav-item {{ Route::is('kategori*') ? 'active' : '' }}">
-                        <a class="nav-link" href="{{ route('kategori.index') }}">
+                @can('lihat cabang')
+                    <li class="nav-item {{ Route::is('branch*') ? 'active' : '' }}">
+                        <a class="nav-link" href="{{ route('branch.index') }}">
                             <span class="nav-link-icon d-md-none d-lg-inline-block">
-                                <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-category"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 4h6v6h-6z" /><path d="M14 4h6v6h-6z" /><path d="M4 14h6v6h-6z" /><path d="M17 17m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0" /></svg>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-building"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 21l18 0" /><path d="M9 8l1 0" /><path d="M9 12l1 0" /><path d="M9 16l1 0" /><path d="M14 8l1 0" /><path d="M14 12l1 0" /><path d="M14 16l1 0" /><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16" /></svg>
                             </span>
                             <span class="nav-link-title">
-                                Data Katgeori Barang
+                                Data Cabang
                             </span>
                         </a>
                     </li>
-                @endif
-                @if (auth()->user()->can('lihat barang'))
-                    <li class="nav-item {{ Route::is('produk*') ? 'active' : '' }}">
-                        <a class="nav-link" href="{{ route('produk.index') }}">
+                @endcan
+                @canany(['lihat barang', 'lihat kategori'])
+                    <li class="nav-item dropdown {{ Route::is(['produk.index', 'kategori.index']) ? 'active' : '' }}">
+                        <a class="nav-link dropdown-toggle" href="#navbar-help" data-bs-toggle="dropdown"
+                            data-bs-auto-close="false" role="button" aria-expanded="false">
                             <span class="nav-link-icon d-md-none d-lg-inline-block">
                                 <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-shopping-cart"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" /><path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" /><path d="M17 17h-11v-14h-2" /><path d="M6 5l14 1l-1 7h-13" /></svg>
                             </span>
                             <span class="nav-link-title">
-                                Data Barang
+                                Master Barang
                             </span>
                         </a>
+                        <div class="dropdown-menu">
+                            @can('lihat kategori')
+                                <a class="dropdown-item {{ Route::is('kategori.index') ? 'active' : '' }}" href="{{ route('kategori.index') }}">
+                                    Kategori
+                                </a>
+                            @endcan
+                            @can('lihat barang')
+                                <a class="dropdown-item {{ Route::is('produk.index') ? 'active' : '' }}" href="{{ route('produk.index') }}">
+                                    Barang
+                                </a>
+                            @endcan
+                        </div>
                     </li>
-                @endif
+                @endcanany
                 @if (auth()->user()->can('lihat pelanggan'))
                     <li class="nav-item dropdown {{ request()->is('module-customer*') ? 'active' : '' }}">
                         <a class="nav-link dropdown-toggle" href="#navbar-help" data-bs-toggle="dropdown"
@@ -99,7 +112,7 @@
                         <div class="dropdown-menu">
                             @role('Admin')
                                 <a class="dropdown-item {{ Route::Is('costumer.type.index') ? 'active' : '' }}" href="{{ route('costumer.type.index') }}">
-                                    Data Type Pelanggan
+                                    Data Tipe Pelanggan
                                 </a>
                             @endrole
                             @role('Admin')
