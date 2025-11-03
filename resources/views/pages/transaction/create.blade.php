@@ -18,10 +18,14 @@
                     <b>Cari Pelanggan</b>
                 </div>
                 <div class="card-body">
-                    <div id="reader" style="width: 100%"></div>
+                    {{-- <div id="reader" style="width: 100%"></div>
                     <div class="form-group mt-3">
                         <label for="" class="mb-2">Pilih Kamera</label>
                         <select class="form-control" id="cameraSelect"></select>
+                    </div> --}}
+                    <div class="form-group">
+                        <label for="" class="mb-2">Serial Number</label>
+                        <input type="text" name="code" id="code" class="form-control">
                     </div>
                 </div>
             </div>
@@ -109,46 +113,46 @@
         appendTransaction( data = null, status = false);
         $("#btnSave").attr("disabled", "disabled");
 
-        // $("#code").on("keyup", function() {
-        //     clearTimeout(typingTimer);
+        $("#code").on("keyup", function() {
+            clearTimeout(typingTimer);
 
-        //     typingTimer = setTimeout(function() {
-        //         let code = $("#code").val().trim();
+            typingTimer = setTimeout(function() {
+                let code = $("#code").val().trim();
 
-        //         if (code !== "") {
-        //             $.ajax({
-        //                 url: BASE + '/getCustomerBySerialNumber',
-        //                 method: "POST",
-        //                 data: { code: code },
-        //                 dataType: "json",
-        //             }).done(function(response) {
-        //                 if (response.status == false) {
-        //                     Toast.fire({
-        //                         icon: 'warning',
-        //                         title: response.message
-        //                     });
-        //                     appendCustomer( data = null, status = false);
-        //                     appendTransaction( data = null, status = false);
-        //                     $("#btnSave").attr("disabled", "disabled");
-        //                 } else {
-        //                     appendCustomer(data = response.data, status = true);
-        //                     appendTransaction( data = response.data, status = true);
-        //                     // $("#btnSave").removeAttr("disabled", "disabled");
-        //                     $("#total").val(formatRupiah(response.data.total))
-        //                     $("#customers_id").val(response.data.id);
-        //                     $("#products_id").val(response.data.product.id);
-        //                     $("#qty").val(response.data.limit);
-        //                 }
-        //             }).fail(function(jqXHR, textStatus, errorThrown) {
-        //                 console.log("Error:", textStatus, errorThrown);
-        //             });
-        //         } else {
-        //             appendCustomer( data = null, status = false);
-        //             appendTransaction( data = null, status = false);
-        //             $("#btnSave").attr("disabled", "disabled");
-        //         }
-        //     }, doneTypingInterval);
-        // });
+                if (code !== "") {
+                    $.ajax({
+                        url: BASE + '/getCustomerBySerialNumber',
+                        method: "POST",
+                        data: { code: code },
+                        dataType: "json",
+                    }).done(function(response) {
+                        if (response.status == false) {
+                            Toast.fire({
+                                icon: 'warning',
+                                title: response.message
+                            });
+                            appendCustomer( data = null, status = false);
+                            appendTransaction( data = null, status = false);
+                            $("#btnSave").attr("disabled", "disabled");
+                        } else {
+                            appendCustomer(data = response.data, status = true);
+                            appendTransaction( data = response.data, status = true);
+                            // $("#btnSave").removeAttr("disabled", "disabled");
+                            $("#total").val(formatRupiah(response.data.total))
+                            $("#customers_id").val(response.data.id);
+                            $("#products_id").val(response.data.product.id);
+                            $("#qty").val(response.data.limit);
+                        }
+                    }).fail(function(jqXHR, textStatus, errorThrown) {
+                        console.log("Error:", textStatus, errorThrown);
+                    });
+                } else {
+                    appendCustomer( data = null, status = false);
+                    appendTransaction( data = null, status = false);
+                    $("#btnSave").attr("disabled", "disabled");
+                }
+            }, doneTypingInterval);
+        });
 
         let qrScanner;
         let currentCameraId = null;
