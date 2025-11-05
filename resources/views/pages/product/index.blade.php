@@ -52,6 +52,7 @@
                         <th>Kode Barang</th>
                         <th>Nama Barang</th>
                         <th>Kategori</th>
+                        <th>Cabang/Kantor</th>
                         <th>Stock</th>
                         <th>Harga Dasar</th>
                         <th>Harga Jual</th>
@@ -67,7 +68,8 @@
                             </td>
                             <td>{{ $item->code }}</td>
                             <td>{{ $item->name }}</td>
-                            <td>{{ $item->categori->name }}</td>
+                            <td>{{ optional($item->categori)->name ?? '-' }}</td>
+                            <td>{{ optional($item->branch)->name ?? '-' }}</td>
                             <td>{{ $item->stock }}</td>
                             <td>{{ number_format($item->base_price) }}</td>
                             <td>{{ number_format($item->selling_price) }}</td>
@@ -85,7 +87,7 @@
                        </tr>
                    @empty
                        <tr>
-                            <td colspan="9" class="text-center">Tidak Ada Data</td>
+                            <td colspan="10" class="text-center">Tidak Ada Data</td>
                        </tr>
                    @endforelse
                 </tbody>
@@ -151,6 +153,16 @@
                             @endforeach
                         </select>
                         <span class="invalid-feedback error_name"></span>
+                    </div>
+                    <div class="form-group mb-3">
+                        <label for="branch_id" class="mb-2">Cabang/Kantor</label>
+                        <select name="branch_id" id="branch_id" class="form-control">
+                            <option value="">Pilih</option>
+                            @foreach ($branch as $brc)
+                                <option value="{{ $brc->id }}">{{ $brc->name }}</option>
+                            @endforeach
+                        </select>
+                        <span class="invalid-feedback error_branch_id"></span>
                     </div>
                     <div class="form-group mb-3">
                         <label for="stock" class="mb-2">Stock</label>
@@ -230,6 +242,7 @@
         $("#code").val("");
         $("#name").val("");
         $("#categories_id").val("");
+        $("#branch_id").val("");
         $("#stock").val("");
         $("#base_price").val("");
         $("#selling_price").val("");
@@ -243,6 +256,7 @@
         let code = $("#code").val();
         let name = $("#name").val();
         let categories_id = $("#categories_id").val();
+        let branch_id = $("#branch_id").val();
         let stock = $("#stock").val();
         let base_price = $("#base_price").val();
         let selling_price = $("#selling_price").val();
@@ -265,6 +279,7 @@
                 code: code,
                 name: name,
                 categories_id: categories_id,
+                branch_id: branch_id,
                 stock: stock,
                 base_price: base_price,
                 selling_price: selling_price
@@ -313,6 +328,7 @@
             $("#code").val(data.code);
             $("#name").val(data.name);
             $("#categories_id").val(data.categories_id);
+            $("#branch_id").val(data.branch_id);
             $("#stock").val(data.stock);
             $("#base_price").val(formatRupiah(data.base_price));
             $("#selling_price").val(formatRupiah(data.selling_price));

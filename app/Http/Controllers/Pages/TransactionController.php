@@ -22,62 +22,71 @@ class TransactionController extends Controller
      */
     public function index(Request $request)
     {
+        $user = Auth::user();
+        $level = $user->getRoleNames()[0] ?? null;
+
         $sort = $request->sort ?? 10;
         $search = $request->search ?? null;
 
         $transaction = Transaction::with(['customer', 'product', 'casier'])
-                        ->when($search, function ($query, $search) {
-                            $query->where(function ($q) use ($search) {
-                                $q->whereHas('customer', function ($q) use ($search) {
-                                    $q->where('name', 'like', "%$search%")
-                                    ->orWhere('code', 'like', "%$search%")
-                                    ->orWhere('address', 'like', "%$search%")
-                                    ->orWhere('status', 'like', "%$search%")
-                                    ->orWhere('telp', 'like', "%$search%");
-                                })
-                                ->orWhereHas('product', function ($q) use ($search) {
-                                    $q->where('name', 'like', "%$search%")
-                                    ->orWhere('code', 'like', "%$search%");
-                                });
-                            });
-                        })
-                        ->orderBy('id', 'DESC')
-                        ->paginate($sort);
+            ->when(!in_array($level, ['Admin', 'Manager']), function ($query) use ($user) {
+                $query->where('branch_id', $user->branch_id);
+            })
+            ->when($search, function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->whereHas('customer', function ($q) use ($search) {
+                        $q->where('name', 'like', "%$search%")
+                            ->orWhere('code', 'like', "%$search%")
+                            ->orWhere('address', 'like', "%$search%")
+                            ->orWhere('status', 'like', "%$search%")
+                            ->orWhere('telp', 'like', "%$search%");
+                    })
+                        ->orWhereHas('product', function ($q) use ($search) {
+                            $q->where('name', 'like', "%$search%")
+                                ->orWhere('code', 'like', "%$search%");
+                        });
+                });
+            })
+            ->orderBy('id', 'DESC')
+            ->paginate($sort);
 
         $incomePerMonth = Transaction::select(
-                            DB::raw('MONTH(created_at) as month'),
-                            DB::raw('SUM(total) as total_income')
-                        )
-                        ->groupBy('month')
-                        ->orderBy('month', 'ASC')
-                        ->get();
+            DB::raw('MONTH(created_at) as month'),
+            DB::raw('SUM(total) as total_income')
+        )
+            ->groupBy('month')
+            ->orderBy('month', 'ASC')
+            ->get();
 
         $topCustomers = Customer::leftJoin('transactions', 'transactions.customers_id', '=', 'customers.id')
-                        ->select(
-                            'customers.name as customer_name',
-                            DB::raw('COALESCE(SUM(transactions.qty), 0) as total_spent')
-                        )
-                        ->groupBy('customers.id', 'customers.name')
-                        ->orderByDesc('total_spent')
-                        ->get();
-
-        // $topCustomers = Transaction::join('customers', 'transactions.customers_id', '=', 'customers.id')
-        //                 ->select(
-        //                     'customers.name as customer_name',
-        //                     DB::raw('SUM(transactions.qty) as total_spent')
-        //                 )
-        //                 ->groupBy('customers.id', 'customers.name')
-        //                 ->orderByDesc('total_spent')
-        //                 ->get();
-                    
+            ->leftJoin('products', 'transactions.products_id', '=', 'products.id')
+            ->select(
+                'customers.name as customer_name',
+                DB::raw('COALESCE(SUM(transactions.qty), 0) as total_spent')
+            )
+            ->when(!in_array($level, ['Admin', 'Manager']), function ($query) use ($user) {
+                $query->where('products.branch_id', $user->branch_id);
+            })
+            ->groupBy('customers.id', 'customers.name')
+            ->orderByDesc('total_spent')
+            ->get();
 
         $months = [
-            "Januari", "Februari", "Maret", "April", "Mei", "Juni", 
-            "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+            "Januari",
+            "Februari",
+            "Maret",
+            "April",
+            "Mei",
+            "Juni",
+            "Juli",
+            "Agustus",
+            "September",
+            "Oktober",
+            "November",
+            "Desember"
         ];
 
         $incomeData = array_fill(0, 12, 0);
-
         foreach ($incomePerMonth as $income) {
             $incomeData[$income->month - 1] = $income->total_income;
         }
@@ -96,13 +105,23 @@ class TransactionController extends Controller
             return redirect()->route('usaha.index')->with('warning', 'Isi detail usaha terlebih dahulu.');
         }
 
+        $user = Auth::user();
+        $level = Auth::user()->getRoleNames()[0];
+
+        if (!in_array($level, ['Admin', 'Manager'])) {
+            $sumProduct = Product::where('branch_id', $user->branch_id)->sum('stock');
+            $userBranch = $user->branch->name;
+
+            return view("pages.transaction.create", compact("sumProduct", "userBranch"));
+        }
+
         return view("pages.transaction.create");
     }
 
-    public function getCustomerBySerialNumber(Request $request) 
+    public function getCustomerBySerialNumber(Request $request)
     {
         $code = $request->code;
-        
+
         $customers = Customer::with(['product'])->where('code', $code)->first();
 
         if (!$customers) {
@@ -135,15 +154,20 @@ class TransactionController extends Controller
             return response()->json(['code' => 401, 'status' => 'warning', 'message' => 'Stock barang tidak mencukupi.']);
         }
 
+        $user = Auth::user();
+
         $post = $request->all();
+
         $post['total'] = str_replace('.', '', $request->total);
         $post['payment'] = str_replace('.', '', $request->payment);
-        $post['users_id'] = Auth::user()->id;
+
+        $post['users_id'] = $user->id;
+        $post['branch_id'] = $user->branch_id ?? null;
 
         $transaction = Transaction::create($post);
 
         $products->update(['stock' => $products->stock - $customers->limit]);
-        
+
         return response()->json(['code' => 200, 'status' => 'success', 'transaction' => $transaction]);
     }
 
@@ -174,26 +198,36 @@ class TransactionController extends Controller
         $search = $request->search ?? null;
 
         $incomePerMonth = Transaction::select(
-                            DB::raw('MONTH(created_at) as month'),
-                            DB::raw('SUM(total) as total_income')
-                        )
-                        ->groupBy('month')
-                        ->orderBy('month', 'ASC')
-                        ->get();
+            DB::raw('MONTH(created_at) as month'),
+            DB::raw('SUM(total) as total_income')
+        )
+            ->groupBy('month')
+            ->orderBy('month', 'ASC')
+            ->get();
 
         $topCustomers = Customer::leftJoin('transactions', 'transactions.customers_id', '=', 'customers.id')
-                        ->select(
-                            'customers.name as customer_name',
-                            DB::raw('COALESCE(SUM(transactions.qty), 0) as total_spent')
-                        )
-                        ->groupBy('customers.id', 'customers.name')
-                        ->orderByDesc('total_spent')
-                        ->get();
+            ->select(
+                'customers.name as customer_name',
+                DB::raw('COALESCE(SUM(transactions.qty), 0) as total_spent')
+            )
+            ->groupBy('customers.id', 'customers.name')
+            ->orderByDesc('total_spent')
+            ->get();
 
 
         $months = [
-            "Januari", "Februari", "Maret", "April", "Mei", "Juni", 
-            "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+            "Januari",
+            "Februari",
+            "Maret",
+            "April",
+            "Mei",
+            "Juni",
+            "Juli",
+            "Agustus",
+            "September",
+            "Oktober",
+            "November",
+            "Desember"
         ];
 
         $incomeData = array_fill(0, 12, 0);

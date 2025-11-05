@@ -52,21 +52,39 @@
                     </div>
                 </div>
             </div>
-            <div class="form-group mb-3">
-                <label for="username" class="mb-2">Level</label>
-                <select name="role" id="role" class="form-control @error('role') is-invalid @enderror">
-                    <option value="">Pilih</option>
-                    @foreach ($role as $item)
-                        <option value="{{ $item->name }}">{{ $item->name }}</option>
-                    @endforeach
-                </select>
-                @error('role')
-                    <span class="invalid-feedback">
-                        {{ $message }}
-                    </span>
-                @enderror
-            </div>
             <div class="row">
+                <div class="col-lg-6 col-md-6 col-sm-12">
+                    <div class="form-group mb-3">
+                        <label for="username" class="mb-2">Cabang/Kantor</label>
+                        <select name="branch_id" id="branch_id" class="form-control @error('branch_id') is-invalid @enderror">
+                            <option value="">Pilih</option>
+                            @foreach ($branch as $brc)
+                                <option value="{{ $brc->id }}">{{ $brc->name }}</option>
+                            @endforeach
+                        </select>
+                        @error('branch_id')
+                            <span class="invalid-feedback">
+                                {{ $message }}
+                            </span>
+                        @enderror
+                    </div>
+                </div>
+                <div class="col-lg-6 col-md-6 col-sm-12">
+                    <div class="form-group mb-3">
+                        <label for="username" class="mb-2">Level</label>
+                        <select name="role" id="role" class="form-control @error('role') is-invalid @enderror">
+                            <option value="">Pilih</option>
+                            @foreach ($role as $item)
+                                <option value="{{ $item->name }}">{{ $item->name }}</option>
+                            @endforeach
+                        </select>
+                        @error('role')
+                            <span class="invalid-feedback">
+                                {{ $message }}
+                            </span>
+                        @enderror
+                    </div>
+                </div>
                 <div class="col-lg-6 col-md-6 col-sm-12">
                     <div class="form-group mb-3">
                         <label for="password" class="mb-2">Password</label>

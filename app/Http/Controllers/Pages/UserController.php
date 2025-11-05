@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Pages;
 
 use App\Http\Controllers\Controller;
+use App\Models\Branch;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -18,10 +19,13 @@ class UserController extends Controller
         $sort = $request->sort ?? 10;
         $search = $request->search ?? null;
 
-        $users = User::query()
+        $users = User::with(['branch'])
             ->when($search, function ($query, $search) {
                 $query->where('name', 'like', "%$search%")
-                    ->orWhere('email', 'like', "%$search%");
+                    ->orWhere('email', 'like', "%$search%")
+                    ->orWhereHas('branch', function ($query) use ($search) {
+                        $query->where('name', 'like', "%$search%");
+                    });
             })
             ->orderBy('id', 'DESC')
             ->paginate($sort);
@@ -36,7 +40,9 @@ class UserController extends Controller
     public function create()
     {
         $role = Role::all();
-        return view("pages.user.create", compact("role"));
+        $branch = Branch::all();
+
+        return view("pages.user.create", compact("role", "branch"));
     }
 
     /**
@@ -48,6 +54,7 @@ class UserController extends Controller
             "username" => "required|unique:users,username",
             "name" => "required|string",
             "email" => "required|unique:users,email",
+            "branch_id" => "required",
             "role" => "required",
             "password" => "required|string|min:8|confirmed",
             "password_confirmation" => "required|string"
@@ -69,7 +76,9 @@ class UserController extends Controller
     {
         $user = User::find($id);
         $role = Role::all();
-        return view("pages.user.edit", compact("user", "role"));
+        $branch = Branch::all();
+
+        return view("pages.user.edit", compact("user", "role", "branch"));
     }
 
     /**
@@ -84,19 +93,20 @@ class UserController extends Controller
             "name" => "required|string",
             "email" => "required|unique:users,email," . $user->id,
             "role" => "required",
+            "branch_id" => "nullable",
             "password" => "nullable|string|min:8|confirmed",
         ]);
-    
+
         $updateData = $request->except('password', 'password_confirmation', 'role');
-    
+
         if ($request->filled('password')) {
             $updateData['password'] = Hash::make($request->password);
         }
-    
+
         $user->update($updateData);
-    
+
         $user->syncRoles([$request->role]);
-    
+
         return redirect()->route('user.index')->with('success', 'Berhasil memperbarui user.');
     }
 

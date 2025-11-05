@@ -3,14 +3,16 @@
 namespace App\Http\Controllers\Pages;
 
 use App\Http\Controllers\Controller;
+use App\Models\Branch;
 use App\Models\Categori;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 
 class ProductController extends Controller
 {
-   /**
+    /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
@@ -18,19 +20,25 @@ class ProductController extends Controller
         $sort = $request->sort ?? 10;
         $search = $request->search ?? null;
 
-        $products = Product::with(['categori'])->when($search, function ($query, $search) {
-                                return $query->where('name', 'like', "%$search%")
-                                    ->orWhere('code', 'like', "%$search%")
-                                    ->orWhere('stock', 'like', "%$search%")
-                                    ->orWhereHas('categori', function($q) use ($search) {
-                                        $q->where('name', 'like', "%$search%");
-                                    });
-                                })
-                                ->orderBy('id', 'DESC')
-                                ->paginate($sort);
-        $categories = Categori::select(['id', 'name'])->get();
+        $products = Product::with(['categori', 'branch'])
+            ->when($search, function ($query, $search) {
+                return $query->where('name', 'like', "%$search%")
+                    ->orWhere('code', 'like', "%$search%")
+                    ->orWhere('stock', 'like', "%$search%")
+                    ->orWhereHas('categori', function ($q) use ($search) {
+                        $q->where('name', 'like', "%$search%");
+                    })
+                    ->orWhereHas('branch', function ($q) use ($search) {
+                        $q->where('name', 'like', "%$search%");
+                    });
+            })
+            ->orderBy('id', 'DESC')
+            ->paginate($sort);
 
-        return view("pages.product.index", compact("products", "categories"));
+        $categories = Categori::select(['id', 'name'])->get();
+        $branch = Branch::all();
+
+        return view("pages.product.index", compact("products", "categories", "branch"));
     }
 
     /**
@@ -44,13 +52,13 @@ class ProductController extends Controller
             "categories_id" => "required|exists:categories,id",
             "stock" => "required|integer|min:0",
             "base_price" => "required|numeric|min:0",
-            "selling_price" => "required|numeric|min:0"
-
+            "selling_price" => "required|numeric|min:0",
+            "branch_id" => "required"
         ]);
 
         if ($validation->fails()) {
             return response()->json([
-                'code' => 400, 
+                'code' => 400,
                 'status' => 'error',
                 'message' => 'Opps ada yang belum di isi.',
                 'errors' => $validation->errors()
@@ -74,7 +82,7 @@ class ProductController extends Controller
 
         if (!$products) {
             return response()->json([
-                'code' => 400, 
+                'code' => 400,
                 'status' => 'error',
                 'message' => 'Data Not Found.',
             ]);
@@ -96,13 +104,13 @@ class ProductController extends Controller
             "categories_id" => "required|exists:categories,id",
             "stock" => "required|integer|min:0",
             "base_price" => "required|numeric|min:0",
-            "selling_price" => "required|numeric|min:0"
-
+            "selling_price" => "required|numeric|min:0",
+            "branch_id" => "required"
         ]);
 
         if ($validation->fails()) {
             return response()->json([
-                'code' => 400, 
+                'code' => 400,
                 'status' => 'error',
                 'message' => 'Opps ada yang belum di isi.',
                 'errors' => $validation->errors()
@@ -126,7 +134,7 @@ class ProductController extends Controller
 
         if (!$products) {
             return response()->json([
-                'code' => 400, 
+                'code' => 400,
                 'status' => 'error',
                 'message' => 'Data Not Found.',
             ]);

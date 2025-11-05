@@ -54,6 +54,7 @@
                     <th>Nama Lengkap</th>
                     <th>Email</th>
                     <th>Level</th>
+                    <th>Cabang</th>
                     <th>Created</th>
                     <th>Action</th>
                 </tr>
@@ -81,6 +82,9 @@
                             {{ optional($item->roles->first())->name ?? '-' }}
                         </td>
                         <td>
+                            {{ optional($item->branch)->name ?? '-' }}
+                        </td>
+                        <td>
                             {{ \Carbon\Carbon::parse($item->created_at)->format('d/m/Y H:i:s') }}
                         </td>
                         <td>
@@ -96,7 +100,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" class="text-center">Tidak Ada Data</td>
+                        <td colspan="8" class="text-center">Tidak Ada Data</td>
                     </tr>
                 @endforelse
             </tbody>

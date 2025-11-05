@@ -13,6 +13,25 @@
     <div class="row w-100">
         {{-- search customer by serial number --}}
         <div class="col-lg-6 col-md-6 col-sm-12 mb-3">
+            @unlessrole('Admin|Manager')
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-auto">
+                                <span class="bg-primary text-white avatar">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-shopping-cart-check"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M11.5 17h-5.5v-14h-2" /><path d="M6 5l14 1l-1 7h-13" /><path d="M15 19l2 2l4 -4" /></svg>
+                                </span>
+                            </div>
+                            <div class="col">
+                                <div class="font-weight-medium">Stock Tersisa Di {{ $userBranch ?? '' }}</div>
+                                <div class="text-secondary">
+                                    {{ $sumProduct }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @endunlessrole
             <div class="card mb-3">
                 <div class="card-header">
                     <b>Cari Pelanggan</b>
@@ -154,79 +173,79 @@
             }, doneTypingInterval);
         });
 
-        let qrScanner;
-        let currentCameraId = null;
+        // let qrScanner;
+        // let currentCameraId = null;
 
-        function startQRScanner(cameraId) {
-            const qrCodeRegionId = "reader";
+        // function startQRScanner(cameraId) {
+        //     const qrCodeRegionId = "reader";
 
-            const onScanSuccess = (decodedText) => {
-                $.ajax({
-                    url: BASE + '/getCustomerBySerialNumber',
-                    method: "POST",
-                    data: { code: decodedText },
-                    dataType: "json",
-                }).done(function(response) {
-                    if (response.status == false) {
-                        Toast.fire({
-                            icon: 'warning',
-                            title: response.message
-                        });
-                        appendCustomer( data = null, status = false);
-                        appendTransaction( data = null, status = false);
-                        $("#btnSave").attr("disabled", "disabled");
-                    } else {
-                        appendCustomer(data = response.data, status = true);
-                        appendTransaction( data = response.data, status = true);
-                        // $("#btnSave").removeAttr("disabled", "disabled");
-                        $("#total").val(formatRupiah(response.data.total))
-                        $("#customers_id").val(response.data.id);
-                        $("#products_id").val(response.data.product.id);
-                        $("#qty").val(response.data.limit);
-                    }
-                }).fail(function(jqXHR, textStatus, errorThrown) {
-                    console.log("Error:", textStatus, errorThrown);
-                });
-            };
+        //     const onScanSuccess = (decodedText) => {
+        //         $.ajax({
+        //             url: BASE + '/getCustomerBySerialNumber',
+        //             method: "POST",
+        //             data: { code: decodedText },
+        //             dataType: "json",
+        //         }).done(function(response) {
+        //             if (response.status == false) {
+        //                 Toast.fire({
+        //                     icon: 'warning',
+        //                     title: response.message
+        //                 });
+        //                 appendCustomer( data = null, status = false);
+        //                 appendTransaction( data = null, status = false);
+        //                 $("#btnSave").attr("disabled", "disabled");
+        //             } else {
+        //                 appendCustomer(data = response.data, status = true);
+        //                 appendTransaction( data = response.data, status = true);
+        //                 // $("#btnSave").removeAttr("disabled", "disabled");
+        //                 $("#total").val(formatRupiah(response.data.total))
+        //                 $("#customers_id").val(response.data.id);
+        //                 $("#products_id").val(response.data.product.id);
+        //                 $("#qty").val(response.data.limit);
+        //             }
+        //         }).fail(function(jqXHR, textStatus, errorThrown) {
+        //             console.log("Error:", textStatus, errorThrown);
+        //         });
+        //     };
 
-            if (qrScanner) {
-                qrScanner.stop().then(() => {
-                    document.getElementById(qrCodeRegionId).innerHTML = "";
-                    qrScanner = new Html5Qrcode(qrCodeRegionId);
-                    qrScanner.start(cameraId, { fps: 10, qrbox: 300 }, onScanSuccess);
-                });
-            } else {
-                qrScanner = new Html5Qrcode(qrCodeRegionId);
-                qrScanner.start(cameraId, { fps: 10, qrbox: 300 }, onScanSuccess);
-            }
-        }
+        //     if (qrScanner) {
+        //         qrScanner.stop().then(() => {
+        //             document.getElementById(qrCodeRegionId).innerHTML = "";
+        //             qrScanner = new Html5Qrcode(qrCodeRegionId);
+        //             qrScanner.start(cameraId, { fps: 10, qrbox: 300 }, onScanSuccess);
+        //         });
+        //     } else {
+        //         qrScanner = new Html5Qrcode(qrCodeRegionId);
+        //         qrScanner.start(cameraId, { fps: 10, qrbox: 300 }, onScanSuccess);
+        //     }
+        // }
 
-        function loadCameras() {
-            Html5Qrcode.getCameras().then(devices => {
-                if (devices && devices.length) {
-                    const select = document.getElementById("cameraSelect");
-                    select.innerHTML = "";
-                    devices.forEach(device => {
-                        const option = document.createElement("option");
-                        option.value = device.id;
-                        option.text = device.label || `Camera ${select.length + 1}`;
-                        select.appendChild(option);
-                    });
+        // function loadCameras() {
+        //     Html5Qrcode.getCameras().then(devices => {
+        //         if (devices && devices.length) {
+        //             const select = document.getElementById("cameraSelect");
+        //             select.innerHTML = "";
+        //             devices.forEach(device => {
+        //                 const option = document.createElement("option");
+        //                 option.value = device.id;
+        //                 option.text = device.label || `Camera ${select.length + 1}`;
+        //                 select.appendChild(option);
+        //             });
 
-                    currentCameraId = devices[0].id;
-                    startQRScanner(currentCameraId);
+        //             currentCameraId = devices[0].id;
+        //             startQRScanner(currentCameraId);
 
-                    select.addEventListener("change", function () {
-                        currentCameraId = this.value;
-                        startQRScanner(currentCameraId);
-                    });
-                }
-            }).catch(err => {
-                console.error("Camera access error: ", err);
-            });
-        }
+        //             select.addEventListener("change", function () {
+        //                 currentCameraId = this.value;
+        //                 startQRScanner(currentCameraId);
+        //             });
+        //         }
+        //     }).catch(err => {
+        //         console.error("Camera access error: ", err);
+        //     });
+        // }
 
-        window.addEventListener("load", loadCameras);
+        // window.addEventListener("load", loadCameras);
 
         function appendCustomer(data, status) {
             let html = ``;
