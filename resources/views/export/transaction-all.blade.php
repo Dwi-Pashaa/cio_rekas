@@ -24,7 +24,7 @@
                 <td>{{ $item->qty }}</td>
                 <td>Rp. {{ number_format($item->total) }}</td>
                 <td>{{ optional($item->customer->type)->name ?? '-' }}</td>
-                <td>{{ $item->customer->status }}</td>
+                <td>{{ optional($item->customer->status)->name ?? '-' }}</td>
                 <td>{{ \Carbon\Carbon::parse($item->created_at)->format('d/m/Y H:i:s') }}</td>
             </tr>
         @empty
