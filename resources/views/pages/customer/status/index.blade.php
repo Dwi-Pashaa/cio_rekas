@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title')
-    Data Status Pelanggan
+    Data Status Agent
 @endsection
 
 @push('css')
@@ -99,7 +99,7 @@
         <div class="modal-dialog modal-1 modal-dialog-centered" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Tambah Status Pelanggan</h5>
+                    <h5 class="modal-title">Tambah Status Agent</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"
                         aria-label="Close">
                     </button>
@@ -108,7 +108,7 @@
                     <input type="hidden" name="type" id="type">
                     <input type="hidden" name="id" id="id">
                     <div class="form-group mb-3">
-                        <label for="name" class="mb-2">Nama Status Pelanggan</label>
+                        <label for="name" class="mb-2">Nama Status Agent</label>
                         <input type="text" name="name" id="name" class="form-control">
                         <span class="invalid-feedback error_name"></span>
                     </div>
@@ -145,7 +145,7 @@
     });
 
     $("#addBtn").click(function() {
-        $(".modal-title").html("Tambah Status Pelanggan");
+        $(".modal-title").html("Tambah Status Agent");
         $("#name").val("");
         $("#type").val("create");
         $("#id").val("");
@@ -209,7 +209,7 @@
             method: "GET",
             dataType: "json"
         }).done(function(response){
-            $(".modal-title").html("Edit Status Pelanggan");
+            $(".modal-title").html("Edit Status Agent");
             let data = response.data;
             $("#modal-simple").modal('show')
 

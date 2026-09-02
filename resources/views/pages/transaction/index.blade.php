@@ -1,310 +1,293 @@
 @extends('layouts.app')
 
-@section('title')
-    List Transaksi
-@endsection
+@section('title', 'Riwayat Transaksi')
+@section('pretitle', 'Data Penjualan Kasir')
 
-@push('css')
-    
-@endpush
-
-@section('content')
-
-@include('components.alert.success')
-
-{{-- <div class="row mb-3">
-    <div class="col-lg-4 col-md-4 col-sm-12">
-        <div class="card">
-            <div class="table-responsive-lg">
-                <table class="table card-table table-vcenter text-nowrap datatable">
-                    <thead>
-                        <tr>
-                            <th>Bulan</th>
-                            <th>Nominal</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($months as $index => $month)
-                        <tr>
-                            <td>{{ $month }}</td>
-                            <td>Rp. {{ number_format($incomeData[$index], 0, ',', '.') }}</td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+@section('header-actions')
+    <div class="d-flex align-items-center gap-2">
+        {{-- Badge Stok Cepat di Topbar untuk User Cabang (Non-Admin) --}}
+        @if(isset($branchStock))
+            <div class="d-none d-md-flex align-items-center gap-2 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-2 text-xs fw-semibold text-blue-800" style="height: 38px;">
+                <x-icons.package class="w-4 h-4 text-blue-600" />
+                <span>Stok {{ $userBranchName ?? 'Cabang' }}: <b class="text-primary">{{ number_format($branchStock, 0, ',', '.') }} Unit</b></span>
             </div>
-        </div>
-    </div>
-    <div class="col-lg-8 col-md-8 col-sm-12">
-        <div class="card">
-            <div class="card-body">
-                <div class="d-flex">
-                    <h3 class="card-title">Grafik Pembelian Terbanyak</h3>
-                </div>
-                <div id="chart-top-customer"></div>
-            </div>
-        </div>
-    </div>
-</div> --}}
+        @endif
 
-<div class="card">
-    <div class="card-header">
-        <a href="{{ route('transaksi.create') }}" class="btn btn-primary m-2">
-            <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-plus"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg>
-            Tambah
-        </a>
+        @can('tambah transaksi')
+            <a href="{{ route('transaksi.create') }}" class="btn btn-primary d-inline-flex align-items-center gap-2 px-3.5 py-2 rounded-2 shadow-sm fw-semibold">
+                <x-icons.plus class="w-4 h-4" />
+                <span>Transaksi Baru</span>
+            </a>
+        @endcan
+
         @can('download excel')
-            <a href="{{ route('transaksi.export') }}" class="btn btn-success">
-                <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-file-spreadsheet"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M14 3v4a1 1 0 0 0 1 1h4" /><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z" /><path d="M8 11h8v7h-8z" /><path d="M8 15h8" /><path d="M11 11v7" /></svg>
-                Download Excel
+            <a href="{{ route('transaksi.export') }}" class="btn btn-outline-success d-inline-flex align-items-center gap-2 px-3.5 py-2 rounded-2 fw-semibold">
+                <x-icons.download class="w-4 h-4" />
+                <span>Export Excel</span>
             </a>
         @endcan
     </div>
-    <div class="card-body border-bottom py-3">
-        <div class="d-flex">
-            <div class="text-secondary">
-                <div class="mx-2 d-inline-block">
-                    <select name="sort" id="sort" class="form-control">
-                        @php
-                            $opts = [
-                                10,25,50,100
-                            ];
-                        @endphp 
-                        @foreach ($opts as $opt)
-                            <option value="{{ $opt }}" {{ request('sort') == $opt ? 'selected' : '' }}>{{ $opt }}</option>
-                        @endforeach
-                    </select>
+@endsection
+
+@section('content')
+{{-- Banner Ringkasan Stok Khusus User Cabang (Non-Admin) --}}
+@if(isset($branchStock))
+    <div class="card border-0 rounded-3 text-white mb-3 shadow-sm overflow-hidden" 
+         style="background: linear-gradient(135deg, #1E40AF 0%, #2563EB 100%);">
+        <div class="card-body py-3 px-4 d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="rounded-2 bg-white text-blue-800 d-flex align-items-center justify-center shadow-xs shrink-0" style="width: 44px; height: 44px;">
+                    <x-icons.package class="w-6 h-6 text-blue-700" />
+                </div>
+                <div>
+                    <div class="text-uppercase fw-semibold" style="font-size: 0.7rem; letter-spacing: 0.08em; color: #BFDBFE;">
+                        INVENTARIS AKTIF &bull; {{ strtoupper($userBranchName ?? 'CABANG ANDA') }}
+                    </div>
+                    <div class="fw-bold fs-4 text-white lh-1 mt-0.5">
+                        {{ number_format($branchStock, 0, ',', '.') }} <span class="fs-6 fw-normal text-blue-100">Unit Tersedia</span>
+                    </div>
                 </div>
             </div>
-            <div class="ms-auto text-secondary">
-                <form>
-                    <div class="input-group mb-2">
-                        <input type="text" class="form-control" name="search" placeholder="Search for…">
-                        <button class="btn" type="submit">
-                            <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-search"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6 -6" /></svg>
+            
+            <div class="d-flex align-items-center gap-2">
+                @if(($lowStockCount ?? 0) > 0)
+                    <span class="badge bg-amber-400 text-slate-950 fw-bold px-2.5 py-1.5 rounded-pill text-xs">
+                        {{ $lowStockCount }} Item Menipis
+                    </span>
+                @else
+                    <span class="badge bg-emerald-400 text-slate-950 fw-bold px-2.5 py-1.5 rounded-pill text-xs">
+                        Stok Aman
+                    </span>
+                @endif
+
+                @can('tambah transaksi')
+                    <a href="{{ route('transaksi.create') }}" class="btn btn-light btn-sm px-3 py-1.5 rounded-2 fw-bold text-blue-800 shadow-xs d-inline-flex align-items-center gap-1.5">
+                        <x-icons.cart class="w-4 h-4 text-blue-700" />
+                        <span>Buka Kasir POS</span>
+                    </a>
+                @endcan
+            </div>
+        </div>
+    </div>
+@endif
+
+<div class="card shadow-sm border-0 rounded-3 mb-4">
+    
+    {{-- Header & Search Filter Bar --}}
+    <div class="card-body border-bottom py-3 px-4">
+        <div class="row g-3 align-items-center justify-content-between">
+            {{-- Filter Sort Dropdown --}}
+            <div class="col-12 col-md-auto d-flex align-items-center gap-2.5">
+                <label for="sort" class="text-slate-600 fw-semibold fs-6 m-0">Tampilkan:</label>
+                <select name="sort" id="sort" class="form-select form-select-md w-auto rounded-xl fw-semibold border-slate-300 py-2 px-3 shadow-none">
+                    @foreach ([10, 25, 50, 100] as $opt)
+                        <option value="{{ $opt }}" {{ request('sort') == $opt ? 'selected' : '' }}>{{ $opt }} baris</option>
+                    @endforeach
+                </select>
+            </div>
+
+            {{-- Search Bar --}}
+            <div class="col-12 col-md-5 ms-auto">
+                <form method="GET" action="{{ route('transaksi.index') }}">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0 text-slate-400 ps-3 rounded-start-xl">
+                            <x-icons.search class="w-5 h-5 text-slate-400" />
+                        </span>
+                        <input 
+                            type="text" 
+                            name="search" 
+                            value="{{ request('search') }}" 
+                            class="form-control form-control-md border-start-0 border-slate-300 ps-1 py-2 text-slate-800" 
+                            placeholder="Cari agent, serial number, kasir, barang..."
+                            style="font-size: 0.925rem;"
+                        />
+                        @if(request('search'))
+                            <a href="{{ route('transaksi.index') }}" class="btn btn-outline-secondary d-flex align-items-center px-3">
+                                <x-icons.close class="w-4 h-4" />
+                            </a>
+                        @endif
+                        <button type="submit" class="btn btn-primary px-4 fw-bold rounded-end-xl">
+                            Cari
                         </button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
+
+    {{-- Responsive Table Container --}}
     <div class="table-responsive">
-        <table class="table card-table table-vcenter text-nowrap datatable">
-            <thead>
+        <table class="table table-hover table-vcenter card-table align-middle text-nowrap mb-0">
+            <thead class="bg-light text-muted text-uppercase fs-7 fw-bold border-bottom">
                 <tr>
-                    <th>Kasir</th>
-                    <th>No Serial</th>
-                    <th>Nama Penjual</th>
-                    <th>No Telephone</th>
-                    <th>Alamat</th>
-                    <th>Barang</th>
-                    <th>Jumlah</th>
-                    <th>Nominal</th>
-                    <th>Type</th>
-                    <th>Status</th>
-                    <th>Created</th>
-                    <th>Action</th>
+                    <th class="w-1 text-center py-3.5">No</th>
+                    <th class="py-3.5">Agent</th>
+                    <th class="py-3.5">Barang / Paket</th>
+                    <th class="py-3.5 text-center">Qty</th>
+                    <th class="py-3.5 text-end">Total Bayar</th>
+                    <th class="py-3.5">Kasir & Lokasi Transaksi</th>
+                    <th class="py-3.5 text-center">Status</th>
+                    <th class="py-3.5">Waktu Transaksi</th>
+                    <th class="py-3.5 text-center w-28">Aksi</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody class="divide-y">
                 @forelse ($transaction as $item)
+                    @php
+                        $stockBranch = optional(optional($item->product)->branch)->name ?? (optional($item->branch)->name ?? 'Semua Cabang');
+                        $agentHomeBranch = optional(optional(optional($item->customer)->product)->branch)->name;
+                    @endphp
                     <tr>
-                        <td>
-                            <a href="#" class="text-reset" tabindex="-1">
-                                {{ optional($item->casier)->name ?? '-'; }}
-                            </a>
+                        {{-- No --}}
+                        <td class="text-center text-muted fw-semibold">
+                            {{ $loop->iteration + ($transaction->firstItem() ? $transaction->firstItem() - 1 : 0) }}
                         </td>
+
+                        {{-- Agent & Serial Number --}}
                         <td>
-                            <a href="#" class="text-reset" tabindex="-1">
-                                {{ $item->customer->code }}
-                            </a>
+                            <div class="d-flex align-items-center">
+                                <div class="w-9 h-9 rounded-circle bg-blue-50 text-blue-700 border border-blue-200 fw-bold d-flex align-items-center justify-center me-2.5 shrink-0 text-xs">
+                                    {{ strtoupper(substr($item->customer->name ?? 'A', 0, 2)) }}
+                                </div>
+                                <div class="overflow-hidden">
+                                    <div class="fw-bold text-dark fs-6">{{ $item->customer->name ?? 'Agent Umum' }}</div>
+                                    <div class="d-flex align-items-center flex-wrap gap-1.5 text-muted small mt-0.5">
+                                        <span class="font-monospace text-primary fw-semibold">SN: {{ $item->customer->code ?? '-' }}</span>
+                                        @if($agentHomeBranch && $agentHomeBranch !== $stockBranch)
+                                            <span class="badge bg-light text-slate-600 border px-1.5 py-0.2 rounded" style="font-size: 0.65rem;" title="Cabang asal pendaftaran agent">
+                                                Asal: {{ $agentHomeBranch }}
+                                            </span>
+                                        @endif
+                                        @if($item->customer && $item->customer->telp)
+                                            <span>&bull;</span>
+                                            <span>{{ $item->customer->telp }}</span>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
                         </td>
+
+                        {{-- Barang / Paket & Cabang Asal Stok --}}
                         <td>
-                            <a href="#" class="text-reset" tabindex="-1">
-                                {{ $item->customer->name }}
-                            </a>
+                            <div class="fw-semibold text-dark">{{ $item->product->name ?? '-' }}</div>
+                            <div class="d-flex align-items-center flex-wrap gap-1.5 mt-1">
+                                <span class="text-muted small font-monospace">Kode: {{ $item->product->code ?? '-' }}</span>
+                                <span class="badge bg-purple-subtle text-purple-700 border border-purple-subtle px-2 py-0.5 rounded-pill fw-semibold" style="font-size: 0.68rem;" title="Stok barang diambil dari cabang ini">
+                                    <x-icons.package class="w-3 h-3 inline me-0.5" />
+                                    Stok: {{ $stockBranch }}
+                                </span>
+                            </div>
                         </td>
-                        <td>
-                            <a href="#" class="text-reset" tabindex="-1">
-                                {{ $item->customer->telp }}
-                            </a>
+
+                        {{-- Qty --}}
+                        <td class="text-center">
+                            <span class="badge bg-light text-slate-800 border px-2.5 py-1 rounded-2 fw-bold">
+                                {{ $item->qty }} Unit
+                            </span>
                         </td>
-                        <td>
-                            <a href="#" class="text-reset" tabindex="-1">
-                                {{ $item->customer->address }}
-                            </a>
+
+                        {{-- Total Bayar --}}
+                        <td class="text-end fw-extrabold text-dark fs-6 font-monospace">
+                            Rp {{ number_format($item->total, 0, ',', '.') }}
                         </td>
+
+                        {{-- Kasir & Cabang Lokasi Transaksi --}}
                         <td>
-                            <a href="#" class="text-reset" tabindex="-1">
-                                {{ $item->product->code }} - {{ $item->product->name }}
-                            </a>
+                            <div class="d-flex align-items-center gap-2">
+                                <div>
+                                    <div class="fw-semibold text-slate-800">{{ optional($item->casier)->name ?? '-' }}</div>
+                                    <div class="d-flex align-items-center gap-1 small mt-0.5">
+                                        <x-icons.branch class="w-3.5 h-3.5 text-slate-400" />
+                                        <span class="badge bg-blue-50 text-blue-700 border border-blue-200 rounded-pill px-2 py-0.5" style="font-size: 0.68rem;">
+                                            {{ optional($item->branch)->name ?? (optional($item->casier->branch)->name ?? 'Semua Cabang') }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
                         </td>
-                        <td>
-                            <a href="#" class="text-reset" tabindex="-1">
-                                {{ $item->qty }}
-                            </a>
+
+                        {{-- Status Pelanggan --}}
+                        <td class="text-center">
+                            <span class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1 rounded-pill fw-semibold">
+                                {{ optional(optional($item->customer)->status)->name ?? 'Lunas' }}
+                            </span>
                         </td>
-                        <td>
-                            Rp. {{ number_format($item->total) }}
+
+                        {{-- Waktu Transaksi --}}
+                        <td class="text-muted small">
+                            <div>{{ $item->created_at ? $item->created_at->format('d M Y') : '-' }}</div>
+                            <div class="text-slate-400" style="font-size: 0.72rem;">{{ $item->created_at ? $item->created_at->format('H:i:s') . ' WIB' : '' }}</div>
                         </td>
-                        <td>
-                            <a href="#" class="text-reset" tabindex="-1">
-                                {{ optional($item->customer->type)->name ?? '-' }}
-                            </a>
+
+                        {{-- Aksi Struk --}}
+                        <td class="text-center">
+                            <button 
+                                type="button" 
+                                onclick="printReceipt('{{ $item->id }}')" 
+                                class="btn btn-sm btn-outline-primary px-2.5 py-1.5 rounded-2 fw-semibold d-inline-flex align-items-center gap-1.5 shadow-none" 
+                                title="Cetak Struk Thermal"
+                            >
+                                <x-icons.printer class="w-4 h-4" />
+                                <span>Struk</span>
+                            </button>
                         </td>
-                        <td>
-                            <a href="#" class="text-reset" tabindex="-1">
-                                {{ optional($item->customer->status)->name ?? '-' }}
-                            </a>
-                        </td>
-                        <td>
-                            {{ \Carbon\Carbon::parse($item->created_at)->format('d/m/Y H:i:s') }}
-                        </td>
-                        <td>
-                            <a href="javascript:void(0)" onclick="return printReceipt('{{ $item->id }}');" class="btn btn-outline-warning btn-md">
-                                <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-printer"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M17 17h2a2 2 0 0 0 2 -2v-4a2 2 0 0 0 -2 -2h-14a2 2 0 0 0 -2 2v4a2 2 0 0 0 2 2h2" /><path d="M17 9v-4a2 2 0 0 0 -2 -2h-6a2 2 0 0 0 -2 2v4" /><path d="M7 13m0 2a2 2 0 0 1 2 -2h6a2 2 0 0 1 2 2v4a2 2 0 0 1 -2 2h-6a2 2 0 0 1 -2 -2z" /></svg>
-                                Cetak
-                            </a>
-                            {{-- <a href="javascript:void(0)" onclick="return deletetransaction('{{ $item->id }}')" class="btn btn-outline-danger btn-md">
-                                <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-trash"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 7l16 0" /><path d="M10 11l0 6" /><path d="M14 11l0 6" /><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" /><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" /></svg>
-                                Hapus
-                            </a> --}}
-                        </td> 
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="12" class="text-center">Tidak Ada Data</td>
+                        <td colspan="9" class="text-center py-5 text-muted">
+                            <x-icons.receipt class="w-12 h-12 mx-auto mb-2 text-muted opacity-50" />
+                            <div class="fw-semibold">Tidak ada data transaksi ditemukan</div>
+                            @if(request('search'))
+                                <div class="small text-muted mt-1">Coba gunakan kata kunci pencarian yang lain.</div>
+                            @endif
+                        </td>
                     </tr>
                 @endforelse
             </tbody>
         </table>
     </div>
-    <div class="card-footer d-flex align-items-center">
-        <p class="m-0 text-secondary">
-            Showing <span>{{ $transaction->firstItem() }}</span> 
-            to <span>{{ $transaction->lastItem() }}</span> of
-            <span>{{ $transaction->total() }}</span> entries
+
+    {{-- Footer Pagination --}}
+    <div class="card-footer d-flex flex-column flex-sm-row align-items-center justify-content-between py-3 px-4 gap-2 bg-white border-top">
+        <p class="m-0 text-muted small">
+            Menampilkan <b>{{ $transaction->firstItem() ?? 0 }}</b> sampai <b>{{ $transaction->lastItem() ?? 0 }}</b> dari <b>{{ $transaction->total() }}</b> transaksi
         </p>
-        <ul class="pagination m-0 ms-auto">
-            {{ $transaction->links() }}
-        </ul>
+        <div class="m-0">
+            {{ $transaction->appends(request()->query())->links() }}
+        </div>
     </div>
 </div>
 @endsection
 
 @push('js')
-    <script>
-        const BASE = "{{ route('transaksi.index') }}";
+<script>
+    const BASE = "{{ route('transaksi.index') }}";
 
-        let params = new URLSearchParams(window.location.search);
-        $("#sort").change(function() {
-            params.set('sort', $(this).val());
-            window.location.href = BASE + '?' + params.toString();
-        });
+    // Sorting selector
+    let params = new URLSearchParams(window.location.search);
+    $("#sort").change(function() {
+        params.set('sort', $(this).val());
+        window.location.href = BASE + '?' + params.toString();
+    });
 
-        function printReceipt(transactionId) {
-            let receiptUrl = BASE + "/" + transactionId + "/receipt";
+    function printReceipt(transactionId) {
+        let receiptUrl = "{{ url('transaction') }}/" + transactionId + "/receipt";
+        let popupWidth = 480;
+        let popupHeight = 650;
+        let left = (window.screen.width - popupWidth) / 2;
+        let top = (window.screen.height - popupHeight) / 2;
 
-            let screenWidth = window.screen.width;
-            let screenHeight = window.screen.height;
+        let printWindow = window.open(
+            receiptUrl,
+            "_blank",
+            `width=${popupWidth},height=${popupHeight},top=${top},left=${left}`
+        );
 
-            let popupWidth = 1000;
-            let popupHeight = 600;
-
-            let left = (screenWidth - popupWidth) / 2;
-            let top = (screenHeight - popupHeight) / 2;
-
-            let printWindow = window.open(
-                receiptUrl,
-                "_blank",
-                `width=${popupWidth},height=${popupHeight},top=${top},left=${left}`
-            );
-
-            if (printWindow) {
-                printWindow.focus();
-            } else {
-                alert("Izinkan popup di browser untuk mencetak struk.");
-            }
+        if (printWindow) {
+            printWindow.focus();
+        } else {
+            alert("Izinkan popup browser untuk mencetak struk transaksi.");
         }
-
-        const Toast = Swal.mixin({
-            toast: true,
-            position: "top-end",
-            showConfirmButton: false,
-            timer: 3000,
-            timerProgressBar: true,
-            didOpen: (toast) => {
-                toast.onmouseenter = Swal.stopTimer;
-                toast.onmouseleave = Swal.resumeTimer;
-            }
-        });
-
-        function deleteUsers(id) {
-            Swal.fire({
-                title: "Peringatan !",
-                text: "Anda yakin ingin menghapus data ini?",
-                icon: "warning",
-                showCancelButton: true,
-                confirmButtonColor: "#3085d6",
-                cancelButtonColor: "#d33",
-                confirmButtonText: "Hapus",
-                cancelButtonText: "Batal"
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    $.ajax({
-                        url: BASE + '/' + id + '/destroy',
-                        method: "DELETE",
-                        dataType: "json",
-                        success: function(response) {
-                            Toast.fire({
-                                icon: response.status,
-                                title: response.message
-                            });
-
-                            setTimeout(() => {
-                                window.location.reload();
-                            }, 3000);
-                        },
-                        error: function(err) {
-                            Toast.fire({
-                                icon: "error",
-                                title: "Server Error"
-                            });
-                        }
-                    })
-                }
-            });
-        }
-    </script>
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            var topCustomers = {!! json_encode($topCustomers->pluck('customer_name')) !!};
-            var totalSpent = {!! json_encode($topCustomers->pluck('total_spent')) !!};
-
-            var customerChart = new ApexCharts(document.getElementById('chart-top-customer'), {
-                chart: {
-                    type: "bar",
-                    height: 300,
-                    toolbar: { show: false }
-                },
-                series: [{ name: "Total Belanja", data: totalSpent }],
-                xaxis: {
-                    categories: topCustomers,
-                    labels: { rotate: -45 },
-                    tickPlacement: 'on',
-                    scrollbar: { enabled: true },
-                },
-                yaxis: {
-                    labels: {
-                        formatter: function (value) {
-                            return value;
-                        }
-                    }
-                },
-                colors: ['#FF5733'],
-                legend: { position: 'bottom' }
-            });
-            customerChart.render();
-        });
-    </script>
+    }
+</script>
 @endpush

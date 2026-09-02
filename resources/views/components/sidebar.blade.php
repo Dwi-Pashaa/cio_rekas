@@ -1,195 +1,246 @@
-<aside class="navbar navbar-vertical navbar-expand-lg" data-bs-theme="dark">
+<aside class="navbar navbar-vertical navbar-expand-lg">
     <div class="container-fluid">
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#sidebar-menu"
+        {{-- Mobile Hamburger Toggle --}}
+        <button class="navbar-toggler border-0 text-white" type="button" data-bs-toggle="collapse" data-bs-target="#sidebar-menu"
             aria-controls="sidebar-menu" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
+            <span class="navbar-toggler-icon" style="filter: invert(1);"></span>
         </button>
-        <div class="navbar-brand navbar-brand-autodark">
-            <a href="" class="">
-                <img src="{{ asset('img/logo.png') }}" width="150" alt="">
+
+        {{-- Brand Logo Header --}}
+        <div class="navbar-brand py-3 px-3">
+            <a href="{{ route('dashboard') }}" class="d-flex align-items-center gap-2.5 text-decoration-none">
+                <div class="p-1 rounded-2 bg-white d-flex align-items-center justify-center shadow-sm shrink-0" style="width: 40px; height: 40px;">
+                    <img src="{{ asset('img/logo.png') }}" alt="{{ config('app.name', env('APP_NAME', 'CIO REKAS')) }}" class="img-fluid" style="max-height: 100%; max-width: 100%; object-fit: contain;">
+                </div>
+                <div class="d-flex flex-column text-start overflow-hidden">
+                    <span class="font-bold text-white tracking-tight text-truncate" style="font-size: 1.12rem; line-height: 1.2;">
+                        {{ config('app.name', env('APP_NAME', 'CIO REKAS')) }}
+                    </span>
+                    <span class="text-uppercase fw-semibold" style="color: #93C5FD; font-size: 0.65rem; letter-spacing: 0.12em;">
+                        Point of Sale
+                    </span>
+                </div>
             </a>
         </div>
+
+        {{-- Mobile User Avatar Dropdown --}}
         <div class="navbar-nav flex-row d-lg-none">
             <div class="nav-item dropdown">
-                <a href="#" class="nav-link d-flex lh-1 text-reset p-0" data-bs-toggle="dropdown"
-                    aria-label="Open user menu">
-                    <span class="avatar avatar-sm"
-                        style="background-image: url({{ asset('') }}static/avatars/000m.jpg)"></span>
-                    <div class="d-none d-xl-block ps-2">
-                        <div>{{ Auth::user()->name }}</div>
-                        <div class="mt-1 small text-secondary">{{ Auth::user()->email }}</div>
+                <a href="#" class="nav-link d-flex lh-1 text-reset p-0" data-bs-toggle="dropdown" aria-label="Open user menu">
+                    <div class="w-8 h-8 rounded-circle bg-white text-blue-800 font-bold d-flex align-items-center justify-center text-xs shadow-sm">
+                        {{ strtoupper(substr(Auth::user()->name ?? 'U', 0, 2)) }}
                     </div>
                 </a>
-                <div class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-                    <a href="{{ route('logout') }}" class="dropdown-item">Logout</a>
+                <div class="dropdown-menu dropdown-menu-end shadow-lg rounded-xl p-2 mt-1">
+                    <div class="px-3 py-2 border-bottom border-slate-700 mb-1">
+                        <div class="fw-bold text-white">{{ Auth::user()->name }}</div>
+                        <div class="small text-slate-400">{{ Auth::user()->email }}</div>
+                    </div>
+                    <a href="{{ route('logout') }}" class="dropdown-item text-rose-400 rounded-lg">
+                        <x-icons.logout class="w-4 h-4 me-2" />
+                        Keluar
+                    </a>
                 </div>
             </div>
         </div>
+
+        {{-- Collapsible Sidebar Menu --}}
         <div class="collapse navbar-collapse" id="sidebar-menu">
-            <ul class="navbar-nav pt-lg-3">
+            {{-- User Session Info Box (Desktop) --}}
+            <div class="d-none d-lg-flex align-items-center gap-3 p-2.5 my-2 mx-2 rounded-3 shadow-xs" 
+                 style="background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.16);">
+                <div class="rounded-circle bg-white text-blue-800 fw-extrabold d-flex align-items-center justify-center text-xs shadow-xs shrink-0" 
+                     style="width: 36px; height: 36px; min-width: 36px;">
+                    {{ strtoupper(substr(Auth::user()->name ?? 'U', 0, 2)) }}
+                </div>
+                <div class="overflow-hidden flex-fill">
+                    <div class="text-white fw-bold text-truncate lh-sm" style="font-size: 0.875rem;">
+                        {{ Auth::user()->name }}
+                    </div>
+                    <div class="d-flex align-items-center gap-1.5 mt-0.5">
+                        <span class="badge px-2 py-0.5 rounded-pill" style="background: rgba(147, 197, 253, 0.25); color: #DBEAFE; font-size: 0.68rem; letter-spacing: 0.04em;">
+                            {{ Auth::user()->getRoleNames()[0] ?? 'Kasir' }}
+                        </span>
+                        @if(Auth::user()->branch)
+                            <span class="text-white-50 small">&bull;</span>
+                            <span class="text-truncate small" style="color: #93C5FD; font-size: 0.7rem;" title="{{ Auth::user()->branch->name }}">
+                                {{ Auth::user()->branch->name }}
+                            </span>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
+            <ul class="navbar-nav pt-lg-2">
+                {{-- 1. Dashboard --}}
                 <li class="nav-item {{ Route::is('dashboard*') ? 'active' : '' }}">
                     <a class="nav-link" href="{{ route('dashboard') }}">
                         <span class="nav-link-icon d-md-none d-lg-inline-block">
-                            <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-home"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l-2 0l9 -9l9 9l-2 0" /><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" /><path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" /></svg>
+                            <x-icons.dashboard class="w-5 h-5" />
                         </span>
-                        <span class="nav-link-title">
-                            Dashboard
-                        </span>
+                        <span class="nav-link-title">Dashboard</span>
                     </a>
                 </li>
-                @role('Admin')
-                    @if (auth()->user()->can('lihat level') || auth()->user()->can('lihat user'))
-                        <li class="nav-item {{ Route::is('roles*') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ route('roles.index') }}">
-                                <span class="nav-link-icon d-md-none d-lg-inline-block">
-                                    <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-accessible"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" /><path d="M10 16.5l2 -3l2 3m-2 -3v-2l3 -1m-6 0l3 1" /><circle cx="12" cy="7.5" r=".5" fill="currentColor" /></svg>
-                                </span>
-                                <span class="nav-link-title">
-                                    Data Level
-                                </span>
-                            </a>
-                        </li>
-                        <li class="nav-item {{ Route::is('user*') ? 'active' : '' }}">
-                            <a class="nav-link" href="{{ route('user.index') }}">
-                                <span class="nav-link-icon d-md-none d-lg-inline-block">
-                                    <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-users"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 7m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0" /><path d="M3 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /><path d="M21 21v-2a4 4 0 0 0 -3 -3.85" /></svg>
-                                </span>
-                                <span class="nav-link-title">
-                                    Data Users
-                                </span>
-                            </a>
-                        </li>
-                    @endif
-                @endrole
-                @can('lihat cabang')
-                    <li class="nav-item {{ Route::is('branch*') ? 'active' : '' }}">
-                        <a class="nav-link" href="{{ route('branch.index') }}">
+
+                {{-- 2. Kasir POS --}}
+                @can('tambah transaksi')
+                    <li class="nav-item my-1 {{ Route::is('transaksi.create') ? 'active' : '' }}">
+                        <a class="nav-link" href="{{ route('transaksi.create') }}">
                             <span class="nav-link-icon d-md-none d-lg-inline-block">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-building"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 21l18 0" /><path d="M9 8l1 0" /><path d="M9 12l1 0" /><path d="M9 16l1 0" /><path d="M14 8l1 0" /><path d="M14 12l1 0" /><path d="M14 16l1 0" /><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16" /></svg>
+                                <x-icons.cart class="w-5 h-5" />
                             </span>
-                            <span class="nav-link-title">
-                                Data Cabang
-                            </span>
+                            <span class="nav-link-title font-bold">Kasir POS</span>
                         </a>
                     </li>
                 @endcan
-                @canany(['lihat barang', 'lihat kategori'])
-                    <li class="nav-item dropdown {{ Route::is(['produk.index', 'kategori.index']) ? 'active' : '' }}">
-                        <a class="nav-link dropdown-toggle" href="#navbar-help" data-bs-toggle="dropdown"
-                            data-bs-auto-close="false" role="button" aria-expanded="false">
+
+                {{-- 3. Transaksi (Dropdown) --}}
+                @if (auth()->user()->can('lihat transaksi') || auth()->user()->can('lihat grafik transaksi'))
+                    @php
+                        $isTransaksiActive = Route::is('transaksi.*') && !Route::is('transaksi.create');
+                    @endphp
+                    <li class="nav-item dropdown {{ $isTransaksiActive ? 'active show' : '' }}">
+                        <a class="nav-link dropdown-toggle" href="#navbar-transaksi" data-bs-toggle="dropdown"
+                            data-bs-auto-close="false" role="button" aria-expanded="{{ $isTransaksiActive ? 'true' : 'false' }}">
                             <span class="nav-link-icon d-md-none d-lg-inline-block">
-                                <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-shopping-cart"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M6 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" /><path d="M17 19m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" /><path d="M17 17h-11v-14h-2" /><path d="M6 5l14 1l-1 7h-13" /></svg>
+                                <x-icons.receipt class="w-5 h-5" />
                             </span>
-                            <span class="nav-link-title">
-                                Master Barang
-                            </span>
+                            <span class="nav-link-title">Transaksi</span>
                         </a>
-                        <div class="dropdown-menu">
-                            @can('lihat kategori')
-                                <a class="dropdown-item {{ Route::is('kategori.index') ? 'active' : '' }}" href="{{ route('kategori.index') }}">
-                                    Kategori
-                                </a>
-                            @endcan
-                            @can('lihat barang')
-                                <a class="dropdown-item {{ Route::is('produk.index') ? 'active' : '' }}" href="{{ route('produk.index') }}">
-                                    Barang
-                                </a>
-                            @endcan
-                        </div>
-                    </li>
-                @endcanany
-                @if (auth()->user()->can('lihat pelanggan'))
-                    <li class="nav-item dropdown {{ request()->is('module-customer*') ? 'active' : '' }}">
-                        <a class="nav-link dropdown-toggle" href="#navbar-help" data-bs-toggle="dropdown"
-                            data-bs-auto-close="false" role="button" aria-expanded="false">
-                            <span class="nav-link-icon d-md-none d-lg-inline-block">
-                                <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-users-group"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10 13a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M8 21v-1a2 2 0 0 1 2 -2h4a2 2 0 0 1 2 2v1" /><path d="M15 5a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M17 10h2a2 2 0 0 1 2 2v1" /><path d="M5 5a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M3 13v-1a2 2 0 0 1 2 -2h2" /></svg>
-                            </span>
-                            <span class="nav-link-title">
-                                Data Pelanggan
-                            </span>
-                        </a>
-                        <div class="dropdown-menu">
-                            @role('Admin')
-                                <a class="dropdown-item {{ Route::Is('costumer.type.index') ? 'active' : '' }}" href="{{ route('costumer.type.index') }}">
-                                    Data Tipe Pelanggan
-                                </a>
-                            @endrole
-                            @role('Admin')
-                                <a class="dropdown-item" {{ Route::Is('costumer.status.index') ? 'active' : '' }}" href="{{ route('costumer.status.index') }}">
-                                    Data Status Pelanggan
-                                </a>
-                            @endrole
-                            @can('lihat pelanggan')
-                                <a class="dropdown-item {{ Route::is('customer.index') ? 'active' : '' }}" href="{{ route('customer.index') }}">
-                                    List Pelanggan
-                                </a>
-                            @endcan
-                        </div>
-                    </li>
-                @endif
-                @if (auth()->user()->can('lihat transaksi') || auth()->user()->can('tambah transaksi') || auth()->user()->can('lihat grafik transaksi'))
-                    <li class="nav-item dropdown {{ Route::is('transaksi*') ? 'active' : '' }}">
-                        <a class="nav-link dropdown-toggle" href="#navbar-help" data-bs-toggle="dropdown"
-                            data-bs-auto-close="false" role="button" aria-expanded="false">
-                            <span class="nav-link-icon d-md-none d-lg-inline-block">
-                                <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-cash-register"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M21 15h-2.5c-.398 0 -.779 .158 -1.061 .439c-.281 .281 -.439 .663 -.439 1.061c0 .398 .158 .779 .439 1.061c.281 .281 .663 .439 1.061 .439h1c.398 0 .779 .158 1.061 .439c.281 .281 .439 .663 .439 1.061c0 .398 -.158 .779 -.439 1.061c-.281 .281 -.663 .439 -1.061 .439h-2.5" /><path d="M19 21v1m0 -8v1" /><path d="M13 21h-7c-.53 0 -1.039 -.211 -1.414 -.586c-.375 -.375 -.586 -.884 -.586 -1.414v-10c0 -.53 .211 -1.039 .586 -1.414c.375 -.375 .884 -.586 1.414 -.586h2m12 3.12v-1.12c0 -.53 -.211 -1.039 -.586 -1.414c-.375 -.375 -.884 -.586 -1.414 -.586h-2" /><path d="M16 10v-6c0 -.53 -.211 -1.039 -.586 -1.414c-.375 -.375 -.884 -.586 -1.414 -.586h-4c-.53 0 -1.039 .211 -1.414 .586c-.375 .375 -.586 .884 -.586 1.414v6m8 0h-8m8 0h1m-9 0h-1" /><path d="M8 14v.01" /><path d="M8 17v.01" /><path d="M12 13.99v.01" /><path d="M12 17v.01" /></svg>
-                            </span>
-                            <span class="nav-link-title">
-                                Transaksi
-                            </span>
-                        </a>
-                        <div class="dropdown-menu">
-                            @can('tambah transaksi')
-                                <a class="dropdown-item {{ Route::is('transaksi.create') ? 'active' : '' }}" href="{{ route('transaksi.create') }}" rel="noopener">
-                                    Buat Transaksi
-                                </a>
-                            @endcan
+                        <div class="dropdown-menu {{ $isTransaksiActive ? 'show' : '' }}">
                             @can('lihat transaksi')
-                                <a class="dropdown-item" href="{{ route('transaksi.index') }}">
-                                    List Transaksi
+                                <a class="dropdown-item {{ Route::is('transaksi.index') ? 'active' : '' }}" href="{{ route('transaksi.index') }}">
+                                    <x-icons.clock class="w-4 h-4" />
+                                    <span>Riwayat Transaksi</span>
                                 </a>
                             @endcan
                             @can('lihat grafik transaksi')
-                                <a class="dropdown-item" href="{{ route('transaksi.chart') }}">
-                                    Grafik Transaksi
+                                <a class="dropdown-item {{ Route::is('transaksi.chart') ? 'active' : '' }}" href="{{ route('transaksi.chart') }}">
+                                    <x-icons.trending-up class="w-4 h-4" />
+                                    <span>Grafik Penjualan</span>
                                 </a>
                             @endcan
                         </div>
                     </li>
                 @endif
+
+                {{-- 4. Barang & Cabang (Dropdown) --}}
+                @if (auth()->user()->can('lihat barang') || auth()->user()->can('lihat kategori') || auth()->user()->can('lihat cabang'))
+                    @php
+                        $isBarangActive = Route::is('produk.*') || Route::is('kategori.*') || Route::is('branch.*');
+                    @endphp
+                    <li class="nav-item dropdown {{ $isBarangActive ? 'active show' : '' }}">
+                        <a class="nav-link dropdown-toggle" href="#navbar-barang" data-bs-toggle="dropdown"
+                            data-bs-auto-close="false" role="button" aria-expanded="{{ $isBarangActive ? 'true' : 'false' }}">
+                            <span class="nav-link-icon d-md-none d-lg-inline-block">
+                                <x-icons.products class="w-5 h-5" />
+                            </span>
+                            <span class="nav-link-title">Barang & Cabang</span>
+                        </a>
+                        <div class="dropdown-menu {{ $isBarangActive ? 'show' : '' }}">
+                            @can('lihat barang')
+                                <a class="dropdown-item {{ Route::is('produk.*') ? 'active' : '' }}" href="{{ route('produk.index') }}">
+                                    <x-icons.package class="w-4 h-4" />
+                                    <span>Stok Barang</span>
+                                </a>
+                            @endcan
+                            @can('lihat kategori')
+                                <a class="dropdown-item {{ Route::is('kategori.*') ? 'active' : '' }}" href="{{ route('kategori.index') }}">
+                                    <x-icons.categories class="w-4 h-4" />
+                                    <span>Kategori Barang</span>
+                                </a>
+                            @endcan
+                            @can('lihat cabang')
+                                <a class="dropdown-item {{ Route::is('branch.*') ? 'active' : '' }}" href="{{ route('branch.index') }}">
+                                    <x-icons.branch class="w-4 h-4" />
+                                    <span>Data Cabang</span>
+                                </a>
+                            @endcan
+                        </div>
+                    </li>
+                @endif
+
+                {{-- 5. Data Agent (Dropdown) --}}
+                @if (auth()->user()->can('lihat pelanggan'))
+                    @php
+                        $isCustomerActive = request()->is('module-customer*');
+                    @endphp
+                    <li class="nav-item dropdown {{ $isCustomerActive ? 'active show' : '' }}">
+                        <a class="nav-link dropdown-toggle" href="#navbar-pelanggan" data-bs-toggle="dropdown"
+                            data-bs-auto-close="false" role="button" aria-expanded="{{ $isCustomerActive ? 'true' : 'false' }}">
+                            <span class="nav-link-icon d-md-none d-lg-inline-block">
+                                <x-icons.users class="w-5 h-5" />
+                            </span>
+                            <span class="nav-link-title">Agent</span>
+                        </a>
+                        <div class="dropdown-menu {{ $isCustomerActive ? 'show' : '' }}">
+                            <a class="dropdown-item {{ request()->is('module-customer/customers*') ? 'active' : '' }}" href="{{ route('customer.index') }}">
+                                <x-icons.users class="w-4 h-4" />
+                                <span>Data Agent</span>
+                            </a>
+                            @role('Admin')
+                                <a class="dropdown-item {{ request()->is('module-customer/types*') ? 'active' : '' }}" href="{{ route('costumer.type.index') }}">
+                                    <x-icons.shield class="w-4 h-4" />
+                                    <span>Tipe Agent</span>
+                                </a>
+                                <a class="dropdown-item {{ request()->is('module-customer/status*') ? 'active' : '' }}" href="{{ route('costumer.status.index') }}">
+                                    <x-icons.check class="w-4 h-4" />
+                                    <span>Status Agent</span>
+                                </a>
+                            @endrole
+                        </div>
+                    </li>
+                @endif
+
+                {{-- 6. Laporan Keuangan --}}
                 @if (auth()->user()->can('lihat keuangan'))
                     <li class="nav-item {{ Route::is('keuangan*') ? 'active' : '' }}">
                         <a class="nav-link" href="{{ route('keuangan.index') }}">
                             <span class="nav-link-icon d-md-none d-lg-inline-block">
-                                <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-cash"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M7 15h-3a1 1 0 0 1 -1 -1v-8a1 1 0 0 1 1 -1h12a1 1 0 0 1 1 1v3" /><path d="M7 9m0 1a1 1 0 0 1 1 -1h12a1 1 0 0 1 1 1v8a1 1 0 0 1 -1 1h-12a1 1 0 0 1 -1 -1z" /><path d="M12 14a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /></svg>
+                                <x-icons.finance class="w-5 h-5" />
                             </span>
-                            <span class="nav-link-title">
-                                Keuangan
-                            </span>
+                            <span class="nav-link-title">Laporan Keuangan</span>
                         </a>
                     </li>
                 @endif
+
+                {{-- 7. Pengaturan & Hak Akses (Admin - Dropdown) --}}
                 @role('Admin')
-                    <li class="nav-item {{ Route::is('usaha*') ? 'active' : '' }}">
-                        <a class="nav-link" href="{{ route('usaha.index') }}">
+                    @php
+                        $isSettingsActive = Route::is('user.*') || Route::is('roles.*') || Route::is('usaha.*');
+                    @endphp
+                    <li class="nav-item dropdown {{ $isSettingsActive ? 'active show' : '' }}">
+                        <a class="nav-link dropdown-toggle" href="#navbar-pengaturan" data-bs-toggle="dropdown"
+                            data-bs-auto-close="false" role="button" aria-expanded="{{ $isSettingsActive ? 'true' : 'false' }}">
                             <span class="nav-link-icon d-md-none d-lg-inline-block">
-                                <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-settings"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065z" /><path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /></svg>
+                                <x-icons.settings class="w-5 h-5" />
                             </span>
-                            <span class="nav-link-title">
-                                Setting
-                            </span>
+                            <span class="nav-link-title">Pengaturan</span>
                         </a>
+                        <div class="dropdown-menu {{ $isSettingsActive ? 'show' : '' }}">
+                            <a class="dropdown-item {{ Route::is('user.*') ? 'active' : '' }}" href="{{ route('user.index') }}">
+                                <x-icons.users class="w-4 h-4" />
+                                <span>Manajemen User</span>
+                            </a>
+                            <a class="dropdown-item {{ Route::is('roles.*') ? 'active' : '' }}" href="{{ route('roles.index') }}">
+                                <x-icons.shield class="w-4 h-4" />
+                                <span>Role & Hak Akses</span>
+                            </a>
+                            <a class="dropdown-item {{ Route::is('usaha.*') ? 'active' : '' }}" href="{{ route('usaha.index') }}">
+                                <x-icons.settings class="w-4 h-4" />
+                                <span>Profil Toko</span>
+                            </a>
+                        </div>
                     </li>
                 @endrole
-                <li class="nav-item">
-                    <a class="nav-link" href="{{ route('logout') }}">
-                        <span class="nav-link-icon d-md-none d-lg-inline-block">
-                            <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-logout-2"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10 8v-2a2 2 0 0 1 2 -2h7a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-7a2 2 0 0 1 -2 -2v-2" /><path d="M15 12h-12l3 -3" /><path d="M6 15l-3 -3" /></svg>
+
+                {{-- Keluar Sistem --}}
+                <li class="nav-item mt-4 pt-3" style="border-top: 1px solid rgba(255, 255, 255, 0.12);">
+                    <a class="nav-link text-rose-300 hover:text-white" href="{{ route('logout') }}">
+                        <span class="nav-link-icon d-md-none d-lg-inline-block text-rose-400">
+                            <x-icons.logout class="w-5 h-5" />
                         </span>
-                        <span class="nav-link-title">
-                            Logout
-                        </span>
+                        <span class="nav-link-title fw-bold">Keluar Sistem</span>
                     </a>
                 </li>
             </ul>

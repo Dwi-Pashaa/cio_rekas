@@ -1,142 +1,115 @@
 @extends('layouts.app')
 
-@section('title')
-    Data Cabang
+@section('title', 'Data Cabang')
+@section('pretitle', 'Master Data')
+
+@section('header-actions')
+    @can('tambah cabang')
+        <x-ui.button id="addBtn" variant="primary" size="md" data-bs-toggle="modal" data-bs-target="#modal-branch">
+            <x-icons.plus class="w-4 h-4 mr-1.5" />
+            <span>Tambah Cabang</span>
+        </x-ui.button>
+    @endcan
 @endsection
 
-@push('css')
-    
-@endpush
-
 @section('content')
-    <div class="card">
-        @can('tambah cabang')
-            <div class="card-header">
-                <a href="javascript:void(0)" id="addBtn" data-bs-toggle="modal" data-bs-target="#modal-simple" class="btn btn-primary">
-                    <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-plus"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg>
-                    Tambah
-                </a>
-            </div>
-        @endcan
-        <div class="card-body border-bottom py-3">
-            <div class="d-flex">
-                <div class="text-secondary">
-                    <div class="mx-2 d-inline-block">
-                        <select name="sort" id="sort" class="form-control">
-                            @php
-                                $opts = [
-                                    10,25,50,100
-                                ];
-                            @endphp 
-                            @foreach ($opts as $opt)
-                                <option value="{{ $opt }}" {{ request('sort') == $opt ? 'selected' : '' }}>{{ $opt }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                </div>
-                <div class="ms-auto text-secondary">
-                    <form>
-                        <div class="input-group mb-2">
-                            <input type="text" class="form-control" name="search" placeholder="Search for…">
-                            <button class="btn" type="submit">
-                                <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-search"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0" /><path d="M21 21l-6 -6" /></svg>
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-        <div class="table-responsive">
-            <table class="table card-table table-vcenter text-nowrap datatable">
-                <thead>
-                    <tr>
-                        <th class="w-1">No</th>
-                        <th>Nama Cabang</th>
-                        <th>Created</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                   @forelse ($branch as $item)
-                       <tr>
-                            <td>
-                                {{ $loop->iteration }}
-                            </td>
-                            <td>{{ $item->name }}</td>
-                            <td>{{ \Carbon\Carbon::parse($item->created_at)->format('d/m/Y H:i:s') }}</td>
-                            <td>
+<div class="space-y-6">
+    <x-ui.card-table 
+        title="Daftar Cabang" 
+        subtitle="Manajemen data cabang dan lokasi unit usaha"
+        :paginator="$branch"
+    >
+        <x-slot:actions>
+            <x-ui.search-input placeholder="Cari nama cabang..." />
+        </x-slot:actions>
+
+        <table class="w-full text-left text-sm whitespace-nowrap">
+            <thead class="bg-slate-50 text-slate-500 text-xs uppercase font-semibold border-b border-slate-100">
+                <tr>
+                    <th class="px-5 py-3.5 w-16 text-center">No</th>
+                    <th class="px-5 py-3.5">Nama Cabang</th>
+                    <th class="px-5 py-3.5">Tanggal Dibuat</th>
+                    <th class="px-5 py-3.5 text-center w-36">Aksi</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 text-slate-700">
+                @forelse ($branch as $item)
+                    <tr class="hover:bg-slate-50/80 transition-colors">
+                        <td class="px-5 py-3.5 text-center text-slate-400 font-medium">
+                            {{ $loop->iteration + ($branch->firstItem() ? $branch->firstItem() - 1 : 0) }}
+                        </td>
+                        <td class="px-5 py-3.5">
+                            <div class="font-bold text-slate-900">{{ $item->name }}</div>
+                        </td>
+                        <td class="px-5 py-3.5 text-xs text-slate-500">
+                            {{ \Carbon\Carbon::parse($item->created_at)->format('d M Y H:i') }}
+                        </td>
+                        <td class="px-5 py-3.5 text-center">
+                            <div class="inline-flex items-center gap-1.5">
                                 @can('edit cabang')
-                                    <a href="javascript:void(0)" onclick="return editModal('{{ $item->id }}')" class="btn btn-outline-warning btn-md">
-                                        <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-edit"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M7 7h-1a2 2 0 0 0 -2 2v9a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1" /><path d="M20.385 6.585a2.1 2.1 0 0 0 -2.97 -2.97l-8.415 8.385v3h3l8.385 -8.415z" /><path d="M16 5l3 3" /></svg>
-                                        Edit
-                                    </a>
+                                    <button 
+                                        type="button" 
+                                        onclick="editModal('{{ $item->id }}')" 
+                                        class="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" 
+                                        title="Edit Cabang"
+                                    >
+                                        <x-icons.edit class="w-4 h-4" />
+                                    </button>
                                 @endcan
                                 @can('hapus cabang')
-                                    <a href="javascript:void(0)" onclick="return deleteItem('{{ $item->id }}')" class="btn btn-outline-danger btn-md">
-                                        <svg  xmlns="http://www.w3.org/2000/svg"  width="24"  height="24"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round"  class="icon icon-tabler icons-tabler-outline icon-tabler-trash"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 7l16 0" /><path d="M10 11l0 6" /><path d="M14 11l0 6" /><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" /><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" /></svg>
-                                        Hapus
-                                    </a>
+                                    <button 
+                                        type="button" 
+                                        onclick="deleteItem('{{ $item->id }}')" 
+                                        class="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition-colors" 
+                                        title="Hapus Cabang"
+                                    >
+                                        <x-icons.trash class="w-4 h-4" />
+                                    </button>
                                 @endcan
-                            </td> 
-                       </tr>
-                   @empty
-                       <tr>
-                            <td colspan="4" class="text-center">Tidak Ada Data</td>
-                       </tr>
-                   @endforelse
-                </tbody>
-            </table>
-        </div>
-        <div class="card-footer d-flex align-items-center">
-            <p class="m-0 text-secondary">
-                Showing <span>{{ $branch->firstItem() }}</span> 
-                to <span>{{ $branch->lastItem() }}</span> of
-                <span>{{ $branch->total() }}</span> entries
-            </p>
-            <ul class="pagination m-0 ms-auto">
-                {{ $branch->links() }}
-            </ul>
-        </div>
-    </div>
+                            </div>
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="4" class="px-5 py-12 text-center text-slate-400">
+                            <x-icons.branch class="w-10 h-10 mx-auto mb-2 text-slate-300" />
+                            <p class="text-sm font-medium">Belum ada data cabang</p>
+                        </td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </x-ui.card-table>
+</div>
 @endsection
 
 @push('modal')
-    <div class="modal modal-blur fade" id="modal-simple" tabindex="-1" role="dialog" aria-hidden="true">
-        <div class="modal-dialog modal-1 modal-dialog-centered" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Tambah Cabang</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"
-                        aria-label="Close">
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <input type="hidden" name="type" id="type">
-                    <input type="hidden" name="id" id="id">
-                    <div class="form-group mb-3">
-                        <label for="name" class="mb-2">Nama Cabang</label>
-                        <input type="text" name="name" id="name" class="form-control">
-                        <span class="invalid-feedback error_name"></span>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn me-auto" data-bs-dismiss="modal">Batal</button>
-                    <button type="button" id="storeBtn" class="btn btn-primary">Simpan</button>
-                </div>
-            </div>
-        </div>
-    </div>
+    <x-ui.modal id="modal-branch" title="Tambah Cabang" size="md">
+        <input type="hidden" name="type" id="type" value="create">
+        <input type="hidden" name="id" id="id">
+        
+        <x-ui.form-input 
+            label="Nama Cabang" 
+            name="name" 
+            id="name" 
+            placeholder="Contoh: Cabang Pusat / Cabang Barat" 
+            required 
+        />
+
+        <x-slot:footer>
+            <button type="button" class="px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-all cursor-pointer" data-bs-dismiss="modal">
+                Batal
+            </button>
+            <button type="button" id="storeBtn" class="px-4 py-2 text-sm font-semibold text-white bg-blue-600 rounded-xl hover:bg-blue-700 shadow-sm transition-all cursor-pointer">
+                Simpan
+            </button>
+        </x-slot:footer>
+    </x-ui.modal>
 @endpush
 
 @push('js')
 <script>
     const BASE = "{{ route('branch.index') }}";
-
-    let params = new URLSearchParams(window.location.search);
-    $("#sort").change(function() {
-        params.set('sort', $(this).val());
-        window.location.href = BASE + '?' + params.toString();
-    });
 
     const Toast = Swal.mixin({
         toast: true,
@@ -151,7 +124,7 @@
     });
 
     $("#addBtn").click(function() {
-        $(".modal-title").html("Tambah Cabang");
+        $("#modal-branchLabel").html("Tambah Cabang");
         $("#name").val("");
         $("#type").val("create");
         $("#id").val("");
@@ -159,69 +132,56 @@
 
     $("#storeBtn").click(function() {
         let id = $("#id").val();
-        let type = $("#type").val()
+        let type = $("#type").val();
         let name = $("#name").val();
 
-        let url;
-        let method;
-
-        if (type === 'create') {
-            url = BASE + '/store';
-            method = "POST";
-        } else {
-            url = BASE + `/${id}/update`
-            method = "PUT";
-        }
+        let url = (type === 'create') ? BASE + '/store' : BASE + `/${id}/update`;
+        let method = (type === 'create') ? "POST" : "PUT";
         
         $.ajax({
             url: url,
             method: method,
-            data: {
-                name: name
-            },
+            data: { name: name },
         }).done(function(response) {
             if (response.errors) {
                 $.each(response.errors, function(index, value) {
-                    console.log(value);
-                    
-                    $("#name").addClass('is-invalid');
+                    $("#name").addClass('border-rose-500 focus:ring-rose-500');
                     $(".error_" + index).html(value);
 
                     setTimeout(() => {
-                        $("#name").removeClass('is-invalid');
+                        $("#name").removeClass('border-rose-500 focus:ring-rose-500');
                         $(".error_" + index).html('');
                     }, 3000);
-                })                
+                });                
             } else {
-                $("#modal-simple").modal('hide')
+                $("#modal-branch").modal('hide');
                 Toast.fire({
-                    icon: response.status,
-                    title: response.message
+                    icon: response.status || 'success',
+                    title: response.message || 'Data berhasil disimpan.'
                 });
 
                 setTimeout(() => {
                     window.location.reload();
-                }, 3000);
+                }, 1000);
             }
         }).fail(function(jqXHR, textStatus, errorThrown) {
             console.log("Error:", textStatus, errorThrown);
+            Toast.fire({ icon: 'error', title: 'Terjadi kesalahan pada server.' });
         });
     });
 
     function editModal(id) {
-        let url = BASE + `/${id}/show`
         $.ajax({
-            url: url,
+            url: BASE + `/${id}/show`,
             method: "GET",
             dataType: "json"
         }).done(function(response){
-            $(".modal-title").html("Edit Cabang");
+            $("#modal-branchLabel").html("Edit Cabang");
             let data = response.data;
-            $("#modal-simple").modal('show')
-
             $("#id").val(data.id);
             $("#name").val(data.name);
             $("#type").val("update");
+            $("#modal-branch").modal('show');
         }).fail(function(jqXHR, textStatus, errorThrown) {
             console.log("Error:", textStatus, errorThrown);
         });
@@ -229,14 +189,19 @@
 
     function deleteItem(id) {
         Swal.fire({
-            title: "Peringatan !",
-            text: "Anda yakin ingin menghapus data ini?",
+            title: "Konfirmasi Hapus",
+            text: "Data cabang ini akan dihapus secara permanen.",
             icon: "warning",
             showCancelButton: true,
-            confirmButtonColor: "#3085d6",
-            cancelButtonColor: "#d33",
-            confirmButtonText: "Hapus",
-            cancelButtonText: "Batal"
+            confirmButtonColor: "#EF4444",
+            cancelButtonColor: "#64748B",
+            confirmButtonText: "Ya, Hapus",
+            cancelButtonText: "Batal",
+            customClass: {
+                popup: 'rounded-2xl',
+                confirmButton: 'rounded-xl font-bold px-4 py-2',
+                cancelButton: 'rounded-xl font-medium px-4 py-2'
+            }
         }).then((result) => {
             if (result.isConfirmed) {
                 $.ajax({
@@ -245,21 +210,21 @@
                     dataType: "json",
                     success: function(response) {
                         Toast.fire({
-                            icon: response.status,
-                            title: response.message
+                            icon: response.status || 'success',
+                            title: response.message || 'Cabang berhasil dihapus.'
                         });
 
                         setTimeout(() => {
                             window.location.reload();
-                        }, 3000);
+                        }, 1000);
                     },
                     error: function(err) {
                         Toast.fire({
                             icon: "error",
-                            title: "Server Error"
+                            title: "Gagal menghapus cabang."
                         });
                     }
-                })
+                });
             }
         });
     }

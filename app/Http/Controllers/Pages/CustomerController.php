@@ -23,7 +23,7 @@ class CustomerController extends Controller
         $sort = $request->sort ?? 10;
         $search = $request->search ?? null;
 
-        $customers = Customer::with(['product', 'type', 'status'])
+        $customers = Customer::with(['product.branch', 'type', 'status'])
             ->when($search, function ($query, $search) {
                 return $query->where('name', 'like', "%$search%")
                     ->orWhere('code', 'like', "%$search%")
@@ -36,7 +36,7 @@ class CustomerController extends Controller
             ->orderBy('id', 'DESC')
             ->paginate($sort);
 
-        $products = Product::select(['id', 'code', 'name'])->get();
+        $products = Product::with('branch')->select(['id', 'code', 'name', 'branch_id'])->get();
         $customerTypes = CustomerType::select(['id', 'name'])->get();
         $customerStatus = CustomerStatus::select(['id', 'name'])->get();
 
@@ -80,7 +80,7 @@ class CustomerController extends Controller
      */
     public function show(string $id)
     {
-        $customers = Customer::with(['product', 'type', 'status'])->find($id);
+        $customers = Customer::with(['product.branch', 'type', 'status'])->find($id);
 
         if (!$customers) {
             return response()->json([

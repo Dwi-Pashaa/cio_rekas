@@ -109,6 +109,7 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('transaction')->group(function () {
         Route::get('/', [TransactionController::class, 'index'])->name('transaksi.index')->can('lihat transaksi');
         Route::get('/create', [TransactionController::class, 'create'])->name('transaksi.create')->can('tambah transaksi');
+        Route::get('/current-stock', [TransactionController::class, 'getCurrentBranchStock'])->name('transaksi.currentStock')->can('tambah transaksi');
         Route::post('/getCustomerBySerialNumber', [TransactionController::class, 'getCustomerBySerialNumber'])->name('transaksi.getCustomerBySerialNumber')->can('tambah transaksi');
         Route::post('/store', [TransactionController::class, 'store'])->name('transaksi.store')->can('tambah transaksi');
         Route::get('/{id}/receipt', [TransactionController::class, 'show'])->name('transaksi.show')->can('lihat transaksi');
