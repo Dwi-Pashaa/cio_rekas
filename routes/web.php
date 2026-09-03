@@ -6,6 +6,7 @@ use App\Http\Controllers\Pages\Customer\StatusController;
 use App\Http\Controllers\Pages\Customer\TypeController;
 use App\Http\Controllers\Pages\CustomerController;
 use App\Http\Controllers\Pages\DashboardController;
+use App\Http\Controllers\Pages\DistributionController;
 use App\Http\Controllers\Pages\FinanceController;
 use App\Http\Controllers\Pages\KategoriController;
 use App\Http\Controllers\Pages\ProductController;
@@ -28,11 +29,23 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [LoginController::class, 'index'])->name('login');
 Route::post('/login', [LoginController::class, 'login'])->name('post.login');
+Route::get('/invoice/{id}', [TransactionController::class, 'publicReceipt'])->name('transaksi.receipt.public');
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/logout', [LoginController::class, 'logout'])->name('logout');
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    Route::prefix('distribution')->group(function () {
+        Route::get('/utama', [DistributionController::class, 'indexUtama'])->name('distribution.utama.index')->can('distribusi utama');
+        Route::post('/utama/topup', [DistributionController::class, 'storeAdminTopup'])->name('distribution.utama.topup');
+        Route::post('/utama/distribute', [DistributionController::class, 'storeUtamaToCabang'])->name('distribution.utama.distribute')->can('distribusi utama');
+
+        Route::get('/cabang', [DistributionController::class, 'indexCabang'])->name('distribution.cabang.index')->can('distribusi cabang');
+        Route::post('/cabang/distribute', [DistributionController::class, 'storeCabangToBranch'])->name('distribution.cabang.distribute')->can('distribusi cabang');
+
+        Route::get('/history', [DistributionController::class, 'history'])->name('distribution.history');
+    });
 
     Route::prefix('roles')->group(function () {
         Route::get('/', [RoleController::class, 'index'])->name('roles.index')->can('lihat level');
@@ -109,6 +122,7 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('transaction')->group(function () {
         Route::get('/', [TransactionController::class, 'index'])->name('transaksi.index')->can('lihat transaksi');
         Route::get('/create', [TransactionController::class, 'create'])->name('transaksi.create')->can('tambah transaksi');
+        Route::get('/agent/{token}', [TransactionController::class, 'createAgentTransaction'])->name('transaksi.agent.create')->can('tambah transaksi');
         Route::get('/current-stock', [TransactionController::class, 'getCurrentBranchStock'])->name('transaksi.currentStock')->can('tambah transaksi');
         Route::post('/getCustomerBySerialNumber', [TransactionController::class, 'getCustomerBySerialNumber'])->name('transaksi.getCustomerBySerialNumber')->can('tambah transaksi');
         Route::post('/store', [TransactionController::class, 'store'])->name('transaksi.store')->can('tambah transaksi');

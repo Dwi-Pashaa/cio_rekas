@@ -10,4 +10,9 @@ class Usaha extends Model
     use HasFactory;
     protected $table = 'usahas';
     protected $guarded = [];
+
+    protected $casts = [
+        'enable_wa_notification' => 'boolean',
+        'enable_email_notification' => 'boolean',
+    ];
 }

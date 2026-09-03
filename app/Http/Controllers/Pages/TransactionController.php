@@ -4,7 +4,9 @@ namespace App\Http\Controllers\Pages;
 
 use App\Exports\Transaction\ListTransactionExport;
 use App\Http\Controllers\Controller;
+use App\Models\Customer;
 use App\Models\Product;
+use App\Models\Transaction;
 use App\Models\Usaha;
 use App\Services\TransactionService;
 use Exception;
@@ -47,17 +49,27 @@ class TransactionController extends Controller
         }
 
         $months = [
-            "Januari", "Februari", "Maret", "April", "Mei", "Juni",
-            "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+            "Januari",
+            "Februari",
+            "Maret",
+            "April",
+            "Mei",
+            "Juni",
+            "Juli",
+            "Agustus",
+            "September",
+            "Oktober",
+            "November",
+            "Desember"
         ];
 
         return view("pages.transaction.index", compact(
-            "transaction", 
-            "months", 
-            "incomeData", 
-            "topCustomers", 
-            "branchStock", 
-            "userBranchName", 
+            "transaction",
+            "months",
+            "incomeData",
+            "topCustomers",
+            "branchStock",
+            "userBranchName",
             "lowStockCount"
         ));
     }
@@ -83,6 +95,44 @@ class TransactionController extends Controller
         }
 
         return view("pages.transaction.create", compact("sumProduct", "userBranch"));
+    }
+
+    /**
+     * Tampilan transaksi khusus via tap NFC Agent (berdasarkan token terenkripsi).
+     */
+    public function createAgentTransaction(string $token)
+    {
+        $usaha = Usaha::latest()->first();
+
+        if (!$usaha) {
+            return redirect()->route('usaha.index')->with('warning', 'Isi detail usaha terlebih dahulu.');
+        }
+
+        // 1. Dekripsi token Serial Number
+        $code = Customer::decryptCode($token);
+
+        if (!$code) {
+            return redirect()->route('transaksi.create')->with('error', 'Link transaksi NFC tidak valid atau telah kadaluarsa.');
+        }
+
+        // 2. Ambil data agent & paket produknya
+        $user = Auth::user();
+        $customer = $this->transactionService->findCustomerBySerialNumber($code, $user);
+
+        if (!$customer) {
+            return redirect()->route('transaksi.create')->with('error', 'Agent dengan Serial Number (' . e($code) . ') tidak ditemukan atau produk belum diatur.');
+        }
+
+        // 3. Info stok cabang kasir
+        $sumProduct = null;
+        $userBranch = null;
+
+        if ($user && $user->branch_id) {
+            $sumProduct = (int) Product::where('branch_id', $user->branch_id)->sum('stock');
+            $userBranch = $user->branch->name ?? 'Cabang';
+        }
+
+        return view("pages.transaction.agent", compact("customer", "sumProduct", "userBranch", "token"));
     }
 
     /**
@@ -119,7 +169,7 @@ class TransactionController extends Controller
         try {
             $user = Auth::user();
             $transaction = $this->transactionService->processCheckout($request->all(), $user);
-            
+
             // Hitung sisa stok cabang dan sisa stok produk setelah transaksi berhasil secara realtime
             $targetBranchId = $user->branch_id ?? $transaction->branch_id;
             $updatedBranchStock = $targetBranchId ? (int) Product::where('branch_id', $targetBranchId)->sum('stock') : 0;
@@ -171,6 +221,18 @@ class TransactionController extends Controller
     }
 
     /**
+     * Tampilan struk invoice publik yang dapat diakses langsung via link WhatsApp / Email.
+     */
+    public function publicReceipt(string $id)
+    {
+        $data = $this->transactionService->getReceiptData($id);
+        return view("pages.transaction.receipt", [
+            'transaction' => $data['transaction'],
+            'usaha'       => $data['usaha']
+        ]);
+    }
+
+    /**
      * Export Excel resource from storage.
      */
     public function export()
@@ -184,14 +246,35 @@ class TransactionController extends Controller
     public function chart(Request $request)
     {
         $user = Auth::user();
-        $incomeData = $this->transactionService->getMonthlyIncomeData($user);
-        $topCustomers = $this->transactionService->getTopCustomers($user);
+        $selectedYear = (int) ($request->year ?? date('Y'));
+        $incomeData = $this->transactionService->getMonthlyIncomeData($user, $selectedYear);
+        $topCustomers = $this->transactionService->getTopCustomers($user, 10, $selectedYear);
+
+        $availableYears = Transaction::selectRaw('YEAR(created_at) as year')
+            ->distinct()
+            ->orderBy('year', 'DESC')
+            ->pluck('year')
+            ->toArray();
+
+        if (!in_array((int) date('Y'), $availableYears)) {
+            array_unshift($availableYears, (int) date('Y'));
+        }
 
         $months = [
-            "Januari", "Februari", "Maret", "April", "Mei", "Juni",
-            "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+            "Januari",
+            "Februari",
+            "Maret",
+            "April",
+            "Mei",
+            "Juni",
+            "Juli",
+            "Agustus",
+            "September",
+            "Oktober",
+            "November",
+            "Desember"
         ];
 
-        return view("pages.transaction.chart.index", compact("months", "incomeData", "topCustomers"));
+        return view("pages.transaction.chart.index", compact("months", "incomeData", "topCustomers", "selectedYear", "availableYears"));
     }
 }

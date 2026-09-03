@@ -7,6 +7,7 @@ use App\Models\Product;
 use App\Models\Transaction;
 use App\Models\Usaha;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Exception;
 
 class TransactionService
@@ -42,16 +43,18 @@ class TransactionService
     }
 
     /**
-     * Hitung pendapatan per bulan dalam satu tahun berjalan.
+     * Hitung pendapatan per bulan dalam satu tahun tertentu (default tahun berjalan).
      */
-    public function getMonthlyIncomeData($user = null): array
+    public function getMonthlyIncomeData($user = null, ?int $year = null): array
     {
+        $year = $year ?? (int) date('Y');
         $level = $user ? ($user->getRoleNames()[0] ?? null) : null;
 
         $incomePerMonth = Transaction::select(
             DB::raw('MONTH(created_at) as month'),
             DB::raw('SUM(total) as total_income')
         )
+            ->whereYear('created_at', $year)
             ->when($user && !in_array($level, ['Admin', 'Manager']), function ($query) use ($user) {
                 $query->where('branch_id', $user->branch_id);
             })
@@ -71,13 +74,17 @@ class TransactionService
     }
 
     /**
-     * Ambil pelanggan teratas berdasarkan pembelanjaan/qty.
+     * Ambil pelanggan teratas berdasarkan pembelanjaan/qty dalam tahun tertentu.
      */
-    public function getTopCustomers($user = null, int $limit = 5)
+    public function getTopCustomers($user = null, int $limit = 10, ?int $year = null)
     {
+        $year = $year ?? (int) date('Y');
         $level = $user ? ($user->getRoleNames()[0] ?? null) : null;
 
-        return Customer::leftJoin('transactions', 'transactions.customers_id', '=', 'customers.id')
+        return Customer::join('transactions', function ($join) use ($year) {
+                $join->on('transactions.customers_id', '=', 'customers.id')
+                    ->whereYear('transactions.created_at', $year);
+            })
             ->leftJoin('products', 'transactions.products_id', '=', 'products.id')
             ->select(
                 'customers.id as customer_id',
@@ -134,7 +141,7 @@ class TransactionService
      */
     public function processCheckout(array $data, $user)
     {
-        return DB::transaction(function () use ($data, $user) {
+        $transaction = DB::transaction(function () use ($data, $user) {
             $customer = Customer::find($data['customers_id']);
 
             if (!$customer) {
@@ -169,7 +176,7 @@ class TransactionService
 
             if ($productToDeduct->stock <= 0 || $productToDeduct->stock < $qtyToDeduct) {
                 $branchName = $productToDeduct->branch->name ?? 'cabang ini';
-                throw new Exception("Stok barang di {$branchName} tidak mencukupi (sisa {$productToDeduct->stock} unit).");
+                throw new Exception("Stok barang di {$branchName} tidak mencukupi (sisa {$productToDeduct->stock} unit, dibutuhkan {$qtyToDeduct} unit).");
             }
 
             $totalClean = str_replace(['.', ','], '', $data['total']);
@@ -192,6 +199,15 @@ class TransactionService
 
             return $transaction;
         });
+
+        // Trigger Notifikasi Otomatis (WhatsApp via Mekari Qontak & Email via SMTP)
+        try {
+            app(NotificationService::class)->sendTransactionNotifications($transaction);
+        } catch (Exception $e) {
+            Log::error('[TransactionService] Trigger notifikasi transaksi error: ' . $e->getMessage());
+        }
+
+        return $transaction;
     }
 
     /**

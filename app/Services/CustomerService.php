@@ -15,7 +15,10 @@ class CustomerService
             ->when($search, function ($query, $search) {
                 return $query->where('name', 'like', "%$search%")
                     ->orWhere('code', 'like', "%$search%")
-                    ->orWhere('stock', 'like', "%$search%")
+                    ->orWhere('email', 'like', "%$search%")
+                    ->orWhere('nik', 'like', "%$search%")
+                    ->orWhere('telp', 'like', "%$search%")
+                    ->orWhere('address', 'like', "%$search%")
                     ->orWhereHas('product', function ($q) use ($search) {
                         $q->where('name', 'like', "%$search%")
                             ->orWhere('code', 'like', "%$search%");

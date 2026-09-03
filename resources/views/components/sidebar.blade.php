@@ -72,6 +72,13 @@
             </div>
 
             <ul class="navbar-nav pt-lg-2">
+                {{-- KELOMPOK 1: MENU UTAMA --}}
+                <li class="nav-item pt-2 pb-1 px-3">
+                    <span class="text-uppercase fw-bold text-blue-200" style="font-size: 0.65rem; letter-spacing: 0.08em; opacity: 0.75;">
+                        Menu Utama
+                    </span>
+                </li>
+
                 {{-- 1. Dashboard --}}
                 <li class="nav-item {{ Route::is('dashboard*') ? 'active' : '' }}">
                     <a class="nav-link" href="{{ route('dashboard') }}">
@@ -84,7 +91,10 @@
 
                 {{-- 2. Kasir POS --}}
                 @can('tambah transaksi')
-                    <li class="nav-item my-1 {{ Route::is('transaksi.create') ? 'active' : '' }}">
+                    @php
+                        $isKasirPosActive = Route::is('transaksi.create') || Route::is('transaksi.agent.create');
+                    @endphp
+                    <li class="nav-item my-1 {{ $isKasirPosActive ? 'active' : '' }}">
                         <a class="nav-link" href="{{ route('transaksi.create') }}">
                             <span class="nav-link-icon d-md-none d-lg-inline-block">
                                 <x-icons.cart class="w-5 h-5" />
@@ -94,74 +104,148 @@
                     </li>
                 @endcan
 
-                {{-- 3. Transaksi (Dropdown) --}}
-                @if (auth()->user()->can('lihat transaksi') || auth()->user()->can('lihat grafik transaksi'))
-                    @php
-                        $isTransaksiActive = Route::is('transaksi.*') && !Route::is('transaksi.create');
-                    @endphp
-                    <li class="nav-item dropdown {{ $isTransaksiActive ? 'active show' : '' }}">
-                        <a class="nav-link dropdown-toggle" href="#navbar-transaksi" data-bs-toggle="dropdown"
-                            data-bs-auto-close="false" role="button" aria-expanded="{{ $isTransaksiActive ? 'true' : 'false' }}">
-                            <span class="nav-link-icon d-md-none d-lg-inline-block">
-                                <x-icons.receipt class="w-5 h-5" />
-                            </span>
-                            <span class="nav-link-title">Transaksi</span>
-                        </a>
-                        <div class="dropdown-menu {{ $isTransaksiActive ? 'show' : '' }}">
-                            @can('lihat transaksi')
-                                <a class="dropdown-item {{ Route::is('transaksi.index') ? 'active' : '' }}" href="{{ route('transaksi.index') }}">
-                                    <x-icons.clock class="w-4 h-4" />
-                                    <span>Riwayat Transaksi</span>
-                                </a>
-                            @endcan
-                            @can('lihat grafik transaksi')
-                                <a class="dropdown-item {{ Route::is('transaksi.chart') ? 'active' : '' }}" href="{{ route('transaksi.chart') }}">
-                                    <x-icons.trending-up class="w-4 h-4" />
-                                    <span>Grafik Penjualan</span>
-                                </a>
-                            @endcan
-                        </div>
+                {{-- KELOMPOK 2: TRANSAKSI & KEUANGAN --}}
+                @if (auth()->user()->can('lihat transaksi') || auth()->user()->can('lihat grafik transaksi') || auth()->user()->can('lihat keuangan'))
+                    <li class="nav-item pt-3 pb-1 px-3">
+                        <span class="text-uppercase fw-bold text-blue-200" style="font-size: 0.65rem; letter-spacing: 0.08em; opacity: 0.75;">
+                            Transaksi & Keuangan
+                        </span>
                     </li>
+
+                    {{-- 3. Transaksi (Dropdown) --}}
+                    @if (auth()->user()->can('lihat transaksi') || auth()->user()->can('lihat grafik transaksi'))
+                        @php
+                            $isTransaksiActive = Route::is('transaksi.*') && !Route::is('transaksi.create') && !Route::is('transaksi.agent.create');
+                        @endphp
+                        <li class="nav-item dropdown {{ $isTransaksiActive ? 'active show' : '' }}">
+                            <a class="nav-link dropdown-toggle" href="#navbar-transaksi" data-bs-toggle="dropdown"
+                                data-bs-auto-close="false" role="button" aria-expanded="{{ $isTransaksiActive ? 'true' : 'false' }}">
+                                <span class="nav-link-icon d-md-none d-lg-inline-block">
+                                    <x-icons.receipt class="w-5 h-5" />
+                                </span>
+                                <span class="nav-link-title">Transaksi</span>
+                            </a>
+                            <div class="dropdown-menu {{ $isTransaksiActive ? 'show' : '' }}">
+                                @can('lihat transaksi')
+                                    <a class="dropdown-item {{ Route::is('transaksi.index') ? 'active' : '' }}" href="{{ route('transaksi.index') }}">
+                                        <x-icons.clock class="w-4 h-4" />
+                                        <span>Riwayat Transaksi</span>
+                                    </a>
+                                @endcan
+                                @can('lihat grafik transaksi')
+                                    <a class="dropdown-item {{ Route::is('transaksi.chart') ? 'active' : '' }}" href="{{ route('transaksi.chart') }}">
+                                        <x-icons.trending-up class="w-4 h-4" />
+                                        <span>Grafik Penjualan</span>
+                                    </a>
+                                @endcan
+                            </div>
+                        </li>
+                    @endif
+
+                    {{-- 4. Laporan Keuangan --}}
+                    @if (auth()->user()->can('lihat keuangan'))
+                        <li class="nav-item {{ Route::is('keuangan*') ? 'active' : '' }}">
+                            <a class="nav-link" href="{{ route('keuangan.index') }}">
+                                <span class="nav-link-icon d-md-none d-lg-inline-block">
+                                    <x-icons.finance class="w-5 h-5" />
+                                </span>
+                                <span class="nav-link-title">Laporan Keuangan</span>
+                            </a>
+                        </li>
+                    @endif
                 @endif
 
-                {{-- 4. Barang & Cabang (Dropdown) --}}
-                @if (auth()->user()->can('lihat barang') || auth()->user()->can('lihat kategori') || auth()->user()->can('lihat cabang'))
-                    @php
-                        $isBarangActive = Route::is('produk.*') || Route::is('kategori.*') || Route::is('branch.*');
-                    @endphp
-                    <li class="nav-item dropdown {{ $isBarangActive ? 'active show' : '' }}">
-                        <a class="nav-link dropdown-toggle" href="#navbar-barang" data-bs-toggle="dropdown"
-                            data-bs-auto-close="false" role="button" aria-expanded="{{ $isBarangActive ? 'true' : 'false' }}">
-                            <span class="nav-link-icon d-md-none d-lg-inline-block">
-                                <x-icons.products class="w-5 h-5" />
-                            </span>
-                            <span class="nav-link-title">Barang & Cabang</span>
-                        </a>
-                        <div class="dropdown-menu {{ $isBarangActive ? 'show' : '' }}">
-                            @can('lihat barang')
-                                <a class="dropdown-item {{ Route::is('produk.*') ? 'active' : '' }}" href="{{ route('produk.index') }}">
-                                    <x-icons.package class="w-4 h-4" />
-                                    <span>Stok Barang</span>
-                                </a>
-                            @endcan
-                            @can('lihat kategori')
-                                <a class="dropdown-item {{ Route::is('kategori.*') ? 'active' : '' }}" href="{{ route('kategori.index') }}">
-                                    <x-icons.categories class="w-4 h-4" />
-                                    <span>Kategori Barang</span>
-                                </a>
-                            @endcan
-                            @can('lihat cabang')
-                                <a class="dropdown-item {{ Route::is('branch.*') ? 'active' : '' }}" href="{{ route('branch.index') }}">
-                                    <x-icons.branch class="w-4 h-4" />
-                                    <span>Data Cabang</span>
-                                </a>
-                            @endcan
-                        </div>
+                {{-- KELOMPOK 3: INVENTORI & DISTRIBUSI --}}
+                @if (auth()->user()->can('lihat barang') || auth()->user()->can('lihat kategori') || auth()->user()->can('lihat cabang') || auth()->user()->can('distribusi utama') || auth()->user()->can('distribusi cabang') || auth()->user()->can('lihat riwayat distribusi') || auth()->user()->hasRole('Admin'))
+                    <li class="nav-item pt-3 pb-1 px-3">
+                        <span class="text-uppercase fw-bold text-blue-200" style="font-size: 0.65rem; letter-spacing: 0.08em; opacity: 0.75;">
+                            Inventori & Distribusi
+                        </span>
                     </li>
+
+                    {{-- 5. Barang & Cabang (Dropdown) --}}
+                    @if (auth()->user()->can('lihat barang') || auth()->user()->can('lihat kategori') || auth()->user()->can('lihat cabang'))
+                        @php
+                            $isBarangActive = Route::is('produk.*') || Route::is('kategori.*') || Route::is('branch.*');
+                        @endphp
+                        <li class="nav-item dropdown {{ $isBarangActive ? 'active show' : '' }}">
+                            <a class="nav-link dropdown-toggle" href="#navbar-barang" data-bs-toggle="dropdown"
+                                data-bs-auto-close="false" role="button" aria-expanded="{{ $isBarangActive ? 'true' : 'false' }}">
+                                <span class="nav-link-icon d-md-none d-lg-inline-block">
+                                    <x-icons.products class="w-5 h-5" />
+                                </span>
+                                <span class="nav-link-title">Barang & Cabang</span>
+                            </a>
+                            <div class="dropdown-menu {{ $isBarangActive ? 'show' : '' }}">
+                                @can('lihat barang')
+                                    <a class="dropdown-item {{ Route::is('produk.*') ? 'active' : '' }}" href="{{ route('produk.index') }}">
+                                        <x-icons.package class="w-4 h-4" />
+                                        <span>Stok Barang</span>
+                                    </a>
+                                @endcan
+                                @can('lihat kategori')
+                                    <a class="dropdown-item {{ Route::is('kategori.*') ? 'active' : '' }}" href="{{ route('kategori.index') }}">
+                                        <x-icons.categories class="w-4 h-4" />
+                                        <span>Kategori Barang</span>
+                                    </a>
+                                @endcan
+                                @can('lihat cabang')
+                                    <a class="dropdown-item {{ Route::is('branch.*') ? 'active' : '' }}" href="{{ route('branch.index') }}">
+                                        <x-icons.branch class="w-4 h-4" />
+                                        <span>Data Cabang</span>
+                                    </a>
+                                @endcan
+                            </div>
+                        </li>
+                    @endif
+
+                    {{-- 6. Distribusi Voucher (Dropdown) --}}
+                    @if (auth()->user()->can('distribusi utama') || auth()->user()->can('distribusi cabang') || auth()->user()->can('lihat riwayat distribusi') || auth()->user()->hasRole('Admin'))
+                        @php
+                            $isDistributionActive = Route::is('distribution.*');
+                        @endphp
+                        <li class="nav-item dropdown {{ $isDistributionActive ? 'active show' : '' }}">
+                            <a class="nav-link dropdown-toggle" href="#navbar-distribusi" data-bs-toggle="dropdown"
+                                data-bs-auto-close="false" role="button" aria-expanded="{{ $isDistributionActive ? 'true' : 'false' }}">
+                                <span class="nav-link-icon d-md-none d-lg-inline-block">
+                                    <x-icons.truck class="w-5 h-5" />
+                                </span>
+                                <span class="nav-link-title">Distribusi Voucher</span>
+                            </a>
+                            <div class="dropdown-menu {{ $isDistributionActive ? 'show' : '' }}">
+                                @if (auth()->user()->hasRole('Admin') || !auth()->user()->can('distribusi cabang'))
+                                    @if (auth()->user()->can('distribusi utama') || auth()->user()->hasRole('Admin'))
+                                        <a class="dropdown-item {{ Route::is('distribution.utama.*') ? 'active' : '' }}" href="{{ route('distribution.utama.index') }}">
+                                            <x-icons.package class="w-4 h-4" />
+                                            <span>Topup Kuota Voucher</span>
+                                        </a>
+                                    @endif
+                                @endif
+                                @if (auth()->user()->can('distribusi cabang'))
+                                    <a class="dropdown-item {{ Route::is('distribution.cabang.*') ? 'active' : '' }}" href="{{ route('distribution.cabang.index') }}">
+                                        <x-icons.branch class="w-4 h-4" />
+                                        <span>Distribusi Utama</span>
+                                    </a>
+                                @endif
+                                @if (auth()->user()->can('lihat riwayat distribusi'))
+                                    <a class="dropdown-item {{ Route::is('distribution.history') ? 'active' : '' }}" href="{{ route('distribution.history') }}">
+                                        <x-icons.clock class="w-4 h-4" />
+                                        <span>Riwayat Distribusi</span>
+                                    </a>
+                                @endif
+                            </div>
+                        </li>
+                    @endif
                 @endif
 
-                {{-- 5. Data Agent (Dropdown) --}}
+                {{-- KELOMPOK 4: AGENT & PELANGGAN --}}
                 @if (auth()->user()->can('lihat pelanggan'))
+                    <li class="nav-item pt-3 pb-1 px-3">
+                        <span class="text-uppercase fw-bold text-blue-200" style="font-size: 0.65rem; letter-spacing: 0.08em; opacity: 0.75;">
+                            Agent & Mitra
+                        </span>
+                    </li>
+
                     @php
                         $isCustomerActive = request()->is('module-customer*');
                     @endphp
@@ -192,20 +276,14 @@
                     </li>
                 @endif
 
-                {{-- 6. Laporan Keuangan --}}
-                @if (auth()->user()->can('lihat keuangan'))
-                    <li class="nav-item {{ Route::is('keuangan*') ? 'active' : '' }}">
-                        <a class="nav-link" href="{{ route('keuangan.index') }}">
-                            <span class="nav-link-icon d-md-none d-lg-inline-block">
-                                <x-icons.finance class="w-5 h-5" />
-                            </span>
-                            <span class="nav-link-title">Laporan Keuangan</span>
-                        </a>
-                    </li>
-                @endif
-
-                {{-- 7. Pengaturan & Hak Akses (Admin - Dropdown) --}}
+                {{-- KELOMPOK 5: PENGATURAN SISTEM --}}
                 @role('Admin')
+                    <li class="nav-item pt-3 pb-1 px-3">
+                        <span class="text-uppercase fw-bold text-blue-200" style="font-size: 0.65rem; letter-spacing: 0.08em; opacity: 0.75;">
+                            Pengaturan Sistem
+                        </span>
+                    </li>
+
                     @php
                         $isSettingsActive = Route::is('user.*') || Route::is('roles.*') || Route::is('usaha.*');
                     @endphp

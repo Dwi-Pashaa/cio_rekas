@@ -47,7 +47,7 @@
                             name="search" 
                             value="{{ request('search') }}" 
                             class="form-control form-control-md border-start-0 border-slate-300 ps-1 py-2 text-slate-800" 
-                            placeholder="Cari nama, serial number, no telp..."
+                            placeholder="Cari nama, serial number, no telp, email, NIK..."
                             style="font-size: 0.925rem;"
                         />
                         @if(request('search'))
@@ -87,19 +87,32 @@
                             {{ $loop->iteration + ($customers->firstItem() ? $customers->firstItem() - 1 : 0) }}
                         </td>
 
-                        {{-- Agent (Avatar + Nama + Telp + Alamat) --}}
+                        {{-- Agent (Avatar + Nama + NIK + Telp + Email + Alamat) --}}
                         <td>
                             <div class="d-flex align-items-center">
                                 <div class="w-10 h-10 rounded-circle bg-blue-50 text-blue-700 border border-blue-200 fw-bold d-flex align-items-center justify-center me-3 shrink-0 fs-6">
                                     {{ strtoupper(substr($item->name, 0, 2)) }}
                                 </div>
                                 <div class="overflow-hidden">
-                                    <div class="fw-bold text-dark fs-6">{{ $item->name }}</div>
-                                    <div class="d-flex align-items-center gap-2 text-muted small mt-0.5">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <span class="fw-bold text-dark fs-6">{{ $item->name }}</span>
+                                        @if($item->nik)
+                                            <span class="badge bg-light text-slate-600 border px-1.5 py-0.5 font-monospace" style="font-size: 0.68rem;" title="NIK: {{ $item->nik }}">
+                                                NIK: {{ $item->nik }}
+                                            </span>
+                                        @endif
+                                    </div>
+                                    <div class="d-flex align-items-center flex-wrap gap-2 text-muted small mt-0.5">
+                                        @if($item->email)
+                                            <span class="text-primary-emphasis fw-medium">{{ $item->email }}</span>
+                                        @endif
+                                        @if($item->email && $item->telp)
+                                            <span>&bull;</span>
+                                        @endif
                                         @if($item->telp)
                                             <span>{{ $item->telp }}</span>
                                         @endif
-                                        @if($item->telp && $item->address)
+                                        @if(($item->email || $item->telp) && $item->address)
                                             <span>&bull;</span>
                                         @endif
                                         @if($item->address)
@@ -172,6 +185,17 @@
                         {{-- Aksi (Ukuran Nyaman & Proporsional) --}}
                         <td class="text-center">
                             <div class="d-flex align-items-center justify-content-center gap-1.5">
+                                {{-- Tombol Salin Link NFC --}}
+                                <button 
+                                    type="button" 
+                                    onclick="copyNfcLink('{{ $item->nfc_url }}')" 
+                                    class="btn btn-sm btn-outline-info px-2.5 py-1.5 rounded-2 fw-semibold d-inline-flex align-items-center gap-1 shadow-none" 
+                                    title="Salin Link Transaksi NFC untuk NFC Tools"
+                                >
+                                    <x-icons.categories class="w-4 h-4" />
+                                    <span>NFC</span>
+                                </button>
+
                                 {{-- Tombol Member Card --}}
                                 <button 
                                     type="button" 
@@ -264,6 +288,18 @@
                             <label for="telp" class="form-label fw-bold text-muted small text-uppercase">No. Telepon / WA <span class="text-danger">*</span></label>
                             <input type="text" name="telp" id="telp" class="form-control form-control-md rounded-2" placeholder="08xxxxxxxxxx">
                             <span class="invalid-feedback error_telp"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="email" class="form-label fw-bold text-muted small text-uppercase">Email <span class="text-danger">*</span></label>
+                            <input type="email" name="email" id="email" class="form-control form-control-md rounded-2" placeholder="agent@email.com">
+                            <span class="invalid-feedback error_email"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="nik" class="form-label fw-bold text-muted small text-uppercase">NIK / No. KTP <span class="text-muted fw-normal text-capitalize" style="font-size: 0.75rem;">(Opsional)</span></label>
+                            <input type="text" name="nik" id="nik" class="form-control form-control-md rounded-2" placeholder="Masukkan 16 digit NIK">
+                            <span class="invalid-feedback error_nik"></span>
                         </div>
 
                         <div class="col-md-6">
@@ -405,6 +441,20 @@
                             </div>
                         </div>
                     </div>
+
+                    {{-- Box Salin Link NFC --}}
+                    <div class="mt-3 text-start p-2.5 bg-white rounded-3 border border-slate-200">
+                        <label class="text-xs fw-bold text-slate-600 text-uppercase d-block mb-1">
+                            Link Transaksi NFC (Untuk ditulis ke NFC Tag):
+                        </label>
+                        <div class="input-group input-group-sm">
+                            <input type="text" id="modal_nfc_url" readonly class="form-control form-control-sm bg-light text-slate-700 font-monospace text-xs" value="" />
+                            <button type="button" onclick="copyNfcFromModal()" class="btn btn-info px-3 fw-bold d-inline-flex align-items-center gap-1">
+                                <x-icons.categories class="w-3.5 h-3.5" />
+                                <span>Salin Link</span>
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="modal-footer border-top py-3 bg-white d-flex justify-content-between">
@@ -457,6 +507,8 @@
         $("#code").val("");
         $("#name").val("");
         $("#telp").val("");
+        $("#email").val("");
+        $("#nik").val("");
         $("#address").val("");
         $("#products_id").val("");
         $("#limit").val("1");
@@ -473,6 +525,8 @@
         let code = $("#code").val();
         let name = $("#name").val();
         let telp = $("#telp").val();
+        let email = $("#email").val();
+        let nik = $("#nik").val();
         let address = $("#address").val();
         let products_id = $("#products_id").val();
         let limit = $("#limit").val();
@@ -489,6 +543,8 @@
                 code: code,
                 name: name,
                 telp: telp,
+                email: email,
+                nik: nik,
                 address: address,
                 products_id: products_id,
                 limit: limit,
@@ -535,6 +591,8 @@
             $("#code").val(data.code);
             $("#name").val(data.name);
             $("#telp").val(data.telp);
+            $("#email").val(data.email || "");
+            $("#nik").val(data.nik || "");
             $("#address").val(data.address);
             $("#products_id").val(data.products_id);
             $("#limit").val(data.limit);
@@ -605,6 +663,7 @@
             $("#brg").html(data.product ? data.product.name + branchLabel : '-');
             $("#lmt").html((data.limit || '0') + ' Unit');
             $("#sts").html(data.status ? data.status.name.toUpperCase() : 'VIP MEMBER');
+            $("#modal_nfc_url").val(data.nfc_url || '');
 
             JsBarcode("#barcodeMember", data.code, {
                 format: "CODE128",
@@ -616,6 +675,37 @@
         }).fail(function(jqXHR, textStatus, errorThrown) {
             console.log("Error:", textStatus, errorThrown);
         });
+    }
+
+    function copyNfcLink(url) {
+        if (!url) {
+            Toast.fire({ icon: 'warning', title: 'Link NFC belum tersedia.' });
+            return;
+        }
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(url).then(() => {
+                Toast.fire({ icon: 'success', title: 'Link Transaksi NFC berhasil disalin ke clipboard!' });
+            }).catch(() => {
+                fallbackCopyText(url);
+            });
+        } else {
+            fallbackCopyText(url);
+        }
+    }
+
+    function fallbackCopyText(text) {
+        let temp = document.createElement("textarea");
+        temp.value = text;
+        document.body.appendChild(temp);
+        temp.select();
+        document.execCommand("copy");
+        document.body.removeChild(temp);
+        Toast.fire({ icon: 'success', title: 'Link Transaksi NFC berhasil disalin ke clipboard!' });
+    }
+
+    function copyNfcFromModal() {
+        let url = $("#modal_nfc_url").val();
+        copyNfcLink(url);
     }
 
     function printMemberCard() {

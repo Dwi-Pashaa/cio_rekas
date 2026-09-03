@@ -27,7 +27,10 @@ class CustomerController extends Controller
             ->when($search, function ($query, $search) {
                 return $query->where('name', 'like', "%$search%")
                     ->orWhere('code', 'like', "%$search%")
-                    ->orWhere('stock', 'like', "%$search%")
+                    ->orWhere('email', 'like', "%$search%")
+                    ->orWhere('nik', 'like', "%$search%")
+                    ->orWhere('telp', 'like', "%$search%")
+                    ->orWhere('address', 'like', "%$search%")
                     ->orWhereHas('product', function ($q) use ($search) {
                         $q->where('name', 'like', "%$search%")
                             ->orWhere('code', 'like', "%$search%");
@@ -53,6 +56,8 @@ class CustomerController extends Controller
             "code" => "required|unique:customers,code",
             "name" => "required|string",
             "telp" => "required",
+            "email" => "required|email|max:255",
+            "nik" => "nullable|string|max:30",
             "address" => "required|string",
             "limit" => "required|integer|min:1",
             "types_id" => "required",
@@ -104,9 +109,11 @@ class CustomerController extends Controller
 
         $validation = Validator::make($request->all(), [
             "products_id" => "required|exists:products,id",
-            "code" => "required|unique:products,code," . ($customers->id ?? 'NULL') . ",id",
+            "code" => "required|unique:customers,code," . ($customers->id ?? 'NULL') . ",id",
             "name" => "required|string",
             "telp" => "required",
+            "email" => "required|email|max:255",
+            "nik" => "nullable|string|max:30",
             "address" => "required|string",
             "limit" => "required|integer|min:1",
             "types_id" => "required",

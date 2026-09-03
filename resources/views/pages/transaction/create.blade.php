@@ -537,21 +537,25 @@
                     },
                     dataType: "json",
                 }).done(function(response) {
-                    if (response.code == 400) {
-                        // Rollback stok jika validasi gagal
+                    if (response.code == 400 && response.errors) {
+                        // Rollback stok jika validasi form gagal
                         updateBranchStockDisplay(prevStock);
 
                         $.each(response.errors, function(index, value) {
                             $("#" + index).addClass('is-invalid');
                             $(".error_" + index).html(value);
                         });
-                    } else if (response.code == 401 || response.status == 'warning') {
-                        // Rollback stok jika proses gagal
+                        Toast.fire({ icon: 'warning', title: 'Periksa kembali formulir input Anda.' });
+                    } else if (response.code == 400 || response.code == 401 || response.status == 'warning') {
+                        // Rollback stok jika proses gagal (misal: stok cabang tidak mencukupi)
                         updateBranchStockDisplay(prevStock);
 
-                        Toast.fire({
+                        Swal.fire({
                             icon: 'warning',
-                            title: response.message || 'Gagal memproses transaksi.'
+                            title: 'Stok Cabang Tidak Mencukupi!',
+                            text: response.message || 'Stok barang di cabang tidak mencukupi untuk memproses transaksi ini.',
+                            confirmButtonColor: '#2563EB',
+                            confirmButtonText: 'Tutup & Periksa Stok'
                         });
                     } else {
                         // Sinkronkan sisa stok pasti dari database yang dikembalikan server
