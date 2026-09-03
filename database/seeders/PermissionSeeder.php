@@ -45,8 +45,8 @@ class PermissionSeeder extends Seeder
             // 'lihat cabang',
             // 'edit cabang',
             // 'hapus cabang',
-            // 'distribusi utama',
-            // 'distribusi cabang',
+            'distribusi utama',
+            'distribusi cabang',
             'lihat riwayat distribusi',
         ];
 
