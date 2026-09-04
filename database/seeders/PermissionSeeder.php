@@ -45,9 +45,10 @@ class PermissionSeeder extends Seeder
             // 'lihat cabang',
             // 'edit cabang',
             // 'hapus cabang',
-            'distribusi utama',
-            'distribusi cabang',
-            'lihat riwayat distribusi',
+            // 'distribusi utama',
+            // 'distribusi cabang',
+            // 'lihat riwayat distribusi',
+            'transaksi mandiri',
         ];
 
         foreach ($permissions as $permission) {

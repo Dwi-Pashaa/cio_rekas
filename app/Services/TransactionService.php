@@ -2,16 +2,26 @@
 
 namespace App\Services;
 
+use App\Models\Branch;
 use App\Models\Customer;
 use App\Models\Product;
 use App\Models\Transaction;
 use App\Models\Usaha;
+use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Exception;
 
 class TransactionService
 {
+    protected XenditService $xenditService;
+    protected NotificationService $notificationService;
+
+    public function __construct(XenditService $xenditService, NotificationService $notificationService)
+    {
+        $this->xenditService = $xenditService;
+        $this->notificationService = $notificationService;
+    }
+
     /**
      * Ambil data transaksi terpaginasi dengan filter pencarian dan cabang.
      */
@@ -55,6 +65,7 @@ class TransactionService
             DB::raw('SUM(total) as total_income')
         )
             ->whereYear('created_at', $year)
+            ->where('payment_status', 'paid')
             ->when($user && !in_array($level, ['Admin', 'Manager']), function ($query) use ($user) {
                 $query->where('branch_id', $user->branch_id);
             })
@@ -104,7 +115,6 @@ class TransactionService
 
     /**
      * Cari pelanggan berdasarkan kode serial number.
-     * Secara cerdas mendeteksi ketersediaan produk di cabang kasir yang melayani.
      */
     public function findCustomerBySerialNumber(string $code, $user = null)
     {
@@ -114,9 +124,6 @@ class TransactionService
             return null;
         }
 
-        // Resolusi cabang kasir:
-        // Jika kasir memiliki branch_id (misal kasir Cabang A melayani pelanggan dari Cabang B),
-        // cari produk dengan nama yang sama di cabang kasir yang sedang bertugas.
         if ($user && $user->branch_id && $customer->product) {
             $branchProduct = Product::where('branch_id', $user->branch_id)
                 ->where('name', $customer->product->name)
@@ -137,77 +144,114 @@ class TransactionService
     }
 
     /**
-     * Proses transaksi kasir (aman dengan DB::transaction dan pemotongan stok pada cabang kasir yang melayani).
+     * Proses transaksi kasir / pesanan mandiri agent.
      */
     public function processCheckout(array $data, $user)
     {
-        $transaction = DB::transaction(function () use ($data, $user) {
+        $usaha = Usaha::latest()->first();
+
+        $transaction = DB::transaction(function () use ($data, $user, $usaha) {
             $customer = Customer::find($data['customers_id']);
 
             if (!$customer) {
-                throw new Exception('Data pelanggan tidak valid.');
+                throw new Exception('Data pelanggan/agent tidak valid.');
             }
 
-            // Dapatkan referensi produk (dari request atau dari data pelanggan)
             $selectedProduct = Product::find($data['products_id'] ?? $customer->products_id);
             if (!$selectedProduct) {
                 throw new Exception('Data produk tidak ditemukan.');
             }
 
-            // LOGIKA MULTI-CABANG:
-            // Saat kasir Cabang A melayani pembeli dari Cabang B, stok yang berkurang HARUS milik Cabang A!
+            // 1. Tentukan Cabang Target Pemenuhan Stok
+            $targetBranchId = $data['branch_id'] ?? ($user->branch_id ?? $selectedProduct->branch_id);
             $productToDeduct = $selectedProduct;
 
-            if ($user && $user->branch_id) {
-                // Cari produk dengan nama yang sama di cabang kasir yang bertugas
-                $branchProduct = Product::where('branch_id', $user->branch_id)
+            if ($targetBranchId) {
+                $branchProduct = Product::where('branch_id', $targetBranchId)
                     ->where('name', $selectedProduct->name)
                     ->first();
 
                 if ($branchProduct) {
                     $productToDeduct = $branchProduct;
-                } elseif ($selectedProduct->branch_id != $user->branch_id) {
-                    $cashierBranchName = $user->branch->name ?? 'Cabang Anda';
-                    throw new Exception("Produk '{$selectedProduct->name}' belum terdaftar di stok {$cashierBranchName}.");
+                } elseif ($selectedProduct->branch_id != $targetBranchId) {
+                    $branch = Branch::find($targetBranchId);
+                    $targetName = $branch ? $branch->name : 'Cabang yang dipilih';
+                    throw new Exception("Produk '{$selectedProduct->name}' belum terdaftar di stok {$targetName}.");
                 }
             }
 
             $qtyToDeduct = intval($data['qty'] ?? $customer->limit ?? 1);
 
             if ($productToDeduct->stock <= 0 || $productToDeduct->stock < $qtyToDeduct) {
-                $branchName = $productToDeduct->branch->name ?? 'cabang ini';
+                $branchName = optional($productToDeduct->branch)->name ?? 'cabang ini';
                 throw new Exception("Stok barang di {$branchName} tidak mencukupi (sisa {$productToDeduct->stock} unit, dibutuhkan {$qtyToDeduct} unit).");
             }
 
-            $totalClean = str_replace(['.', ','], '', $data['total']);
-            $paymentClean = str_replace(['.', ','], '', $data['payment']);
+            // 2. Opsi Penyerahan & Biaya Jasa Antar Kurir
+            $deliveryType = $data['delivery_type'] ?? 'pickup';
+            $deliveryFee = 0;
+            if ($deliveryType === 'delivery') {
+                $deliveryFee = (float) ($data['delivery_fee'] ?? ($usaha->delivery_fee ?? 0));
+            }
+
+            // 3. Tipe Pembayaran & Status Awal
+            $paymentMethod = $data['payment_method'] ?? 'cash';
+            $paymentStatus = in_array($paymentMethod, ['xendit', 'transfer']) ? 'pending' : 'paid';
+
+            $itemSubtotal = floatval($productToDeduct->selling_price ?? 0) * $qtyToDeduct;
+            $grandTotal = $itemSubtotal + $deliveryFee;
+            $paymentAmount = ($paymentMethod === 'xendit' || $paymentMethod === 'transfer') ? 0 : floatval(str_replace(['.', ','], '', $data['payment'] ?? $grandTotal));
 
             $payload = [
-                'customers_id' => $customer->id,
-                'products_id'  => $productToDeduct->id,
-                'qty'          => $qtyToDeduct,
-                'total'        => $totalClean,
-                'payment'      => $paymentClean,
-                'users_id'     => $user->id,
-                'branch_id'    => $user->branch_id ?? $productToDeduct->branch_id,
+                'customers_id'   => $customer->id,
+                'products_id'    => $productToDeduct->id,
+                'qty'            => $qtyToDeduct,
+                'delivery_type'  => $deliveryType,
+                'delivery_fee'   => $deliveryFee,
+                'total'          => $grandTotal,
+                'payment'        => $paymentAmount,
+                'payment_method' => $paymentMethod,
+                'payment_status' => $paymentStatus,
+                'users_id'       => $user->id,
+                'branch_id'      => $targetBranchId,
             ];
 
-            $transaction = Transaction::create($payload);
+            $trx = Transaction::create($payload);
 
-            // Pengurangan stok pada cabang kasir yang melayani
+            // Pengurangan stok pada cabang penyedia
             $productToDeduct->decrement('stock', $qtyToDeduct);
 
-            return $transaction;
+            return $trx;
         });
 
-        // Trigger Notifikasi Otomatis (WhatsApp via Mekari Qontak & Email via SMTP)
-        try {
-            app(NotificationService::class)->sendTransactionNotifications($transaction);
-        } catch (Exception $e) {
-            Log::error('[TransactionService] Trigger notifikasi transaksi error: ' . $e->getMessage());
+        // 4. Jika menggunakan Payment Gateway Xendit (Transfer Online)
+        $invoiceData = null;
+        if (in_array($transaction->payment_method, ['xendit', 'transfer'])) {
+            try {
+                $customer = Customer::find($transaction->customers_id);
+                $invoiceData = $this->xenditService->createInvoice($transaction, $customer, $transaction->total, $usaha);
+            } catch (Exception $e) {
+                Log::error('[TransactionService] Gagal generate invoice Xendit: ' . $e->getMessage());
+                throw new Exception('Gagal membuat invoice Xendit: ' . $e->getMessage());
+            }
         }
 
-        return $transaction;
+        // 5. Trigger Notifikasi WhatsApp & Email:
+        // - Untuk transaksi CASH (Tunai): Kirim notifikasi sekarang.
+        // - Untuk transaksi TRANSFER (Xendit): Notifikasi WhatsApp HANYA dikirim setelah pembayaran BERHASIL via callback Xendit.
+        if (!in_array($transaction->payment_method, ['xendit', 'transfer'])) {
+            try {
+                $this->notificationService->sendTransactionNotifications($transaction);
+            } catch (Exception $e) {
+                Log::error('[TransactionService] Trigger notifikasi transaksi error: ' . $e->getMessage());
+            }
+        }
+
+        return [
+            'transaction'  => $transaction,
+            'invoice_url'  => $invoiceData['invoice_url'] ?? null,
+            'invoice_id'   => $invoiceData['invoice_id'] ?? null,
+        ];
     }
 
     /**
@@ -215,7 +259,7 @@ class TransactionService
      */
     public function getReceiptData(int|string $id): array
     {
-        $transaction = Transaction::with(['customer', 'customer.type', 'customer.status', 'product', 'casier'])->findOrFail($id);
+        $transaction = Transaction::with(['customer', 'customer.type', 'customer.status', 'product', 'casier', 'branch'])->findOrFail($id);
         $usaha = Usaha::latest()->first();
 
         return [

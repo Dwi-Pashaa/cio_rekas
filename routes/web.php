@@ -123,10 +123,10 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/', [TransactionController::class, 'index'])->name('transaksi.index')->can('lihat transaksi');
         Route::get('/create', [TransactionController::class, 'create'])->name('transaksi.create')->can('tambah transaksi');
         Route::get('/agent/{token}', [TransactionController::class, 'createAgentTransaction'])->name('transaksi.agent.create')->can('tambah transaksi');
-        Route::get('/current-stock', [TransactionController::class, 'getCurrentBranchStock'])->name('transaksi.currentStock')->can('tambah transaksi');
+        Route::get('/current-stock', [TransactionController::class, 'getCurrentBranchStock'])->name('transaksi.currentStock')->can('checkout-transaction');
         Route::post('/getCustomerBySerialNumber', [TransactionController::class, 'getCustomerBySerialNumber'])->name('transaksi.getCustomerBySerialNumber')->can('tambah transaksi');
-        Route::post('/store', [TransactionController::class, 'store'])->name('transaksi.store')->can('tambah transaksi');
-        Route::get('/{id}/receipt', [TransactionController::class, 'show'])->name('transaksi.show')->can('lihat transaksi');
+        Route::post('/store', [TransactionController::class, 'store'])->name('transaksi.store')->can('checkout-transaction');
+        Route::get('/{id}/receipt', [TransactionController::class, 'show'])->name('transaksi.show')->can('view-receipt');
         Route::get('/export', [TransactionController::class, 'export'])->name('transaksi.export')->can('lihat transaksi');
 
         Route::get('/chart', [TransactionController::class, 'chart'])->name('transaksi.chart')->can('lihat grafik transaksi');

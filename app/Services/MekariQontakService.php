@@ -15,15 +15,17 @@ class MekariQontakService
     protected ?string $token;
     protected ?string $channelId;
     protected ?string $templateId;
+    protected ?string $xenditTemplateId;
 
     public function __construct(?Usaha $usaha = null)
     {
         $usaha = $usaha ?? Usaha::latest()->first();
 
         $this->baseUrl = config('services.qontak.base_url', env('QONTAK_BASE_URL', 'https://service-chat.qontak.com'));
-        $this->token = $usaha?->qontak_token ?: env('QONTAK_TOKEN');
-        $this->channelId = $usaha?->qontak_channel_id ?: env('QONTAK_CHANNEL_ID');
-        $this->templateId = $usaha?->qontak_template_id ?: env('QONTAK_TEMPLATE_ID');
+        $this->token = config('services.qontak.token') ?: ($usaha?->qontak_token ?: env('QONTAK_TOKEN'));
+        $this->channelId = config('services.qontak.channel_id') ?: ($usaha?->qontak_channel_id ?: env('QONTAK_CHANNEL_ID'));
+        $this->templateId = config('services.qontak.template_id') ?: ($usaha?->qontak_template_id ?: env('QONTAK_TEMPLATE_ID'));
+        $this->xenditTemplateId = config('services.qontak.xendit_template_id') ?: (env('QONTAK_XENDIT_TEMPLATE_ID') ?: $this->templateId);
     }
 
     /**
@@ -66,7 +68,7 @@ class MekariQontakService
      * @param string $toPhone
      * @param string $toName
      * @param Transaction $transaction
-     * @param string $recipientType 'agent' | 'admin'
+     * @param string $recipientType 'agent' | 'admin' | 'branch'
      * @return array
      */
     public function sendTransactionNotification(string $toPhone, string $toName, Transaction $transaction, string $recipientType = 'agent'): array
@@ -85,9 +87,27 @@ class MekariQontakService
         $customer = $transaction->customer;
         $product = $transaction->product;
         $casier = $transaction->casier;
+        $branch = $transaction->branch;
         $date = Carbon::parse($transaction->created_at)->translatedFormat('d F Y, H:i');
 
-        // Parameter body dinamis yang umum digunakan pada WhatsApp Template Mekari Qontak
+        $isXendit = in_array(strtolower($transaction->payment_method ?? ''), ['xendit', 'transfer']);
+        $activeTemplateId = !empty($this->templateId) ? $this->templateId : $this->xenditTemplateId;
+
+        // URL struk digital / link pembayaran Xendit
+        $linkUrl = ($isXendit && !empty($transaction->xendit_invoice_url) && $transaction->payment_status !== 'paid')
+            ? $transaction->xendit_invoice_url
+            : route('transaksi.receipt.public', ['id' => $transaction->id]);
+
+        // Keterangan Metode & Status Pembayaran
+        if ($isXendit) {
+            $paymentInfo = ($transaction->payment_status === 'paid') 
+                ? 'TRANSFER (Lunas)' 
+                : 'TRANSFER XENDIT (Belum Bayar)';
+        } else {
+            $paymentInfo = 'CASH / TUNAI';
+        }
+
+        // Parameter body dinamis yang dikirimkan ke WhatsApp Template Mekari Qontak
         $bodyParameters = [
             [
                 'key' => '1',
@@ -121,8 +141,8 @@ class MekariQontakService
             ],
             [
                 'key' => '7',
-                'value' => 'payment_amount',
-                'value_text' => 'Rp ' . number_format($transaction->payment ?? 0, 0, ',', '.'),
+                'value' => 'payment_info',
+                'value_text' => $paymentInfo,
             ],
             [
                 'key' => '8',
@@ -132,19 +152,19 @@ class MekariQontakService
             [
                 'key' => '9',
                 'value' => 'cashier_name',
-                'value_text' => $casier?->name ?? 'Kasir',
+                'value_text' => $branch?->name ?? ($casier?->name ?? 'Kasir'),
             ],
             [
                 'key' => '10',
                 'value' => 'invoice_url',
-                'value_text' => route('transaksi.receipt.public', ['id' => $transaction->id]),
+                'value_text' => $linkUrl,
             ],
         ];
 
         $payload = [
             'to_number' => $formattedPhone,
             'to_name' => $toName,
-            'message_template_id' => $this->templateId,
+            'message_template_id' => $activeTemplateId,
             'channel_integration_id' => $this->channelId,
             'language' => [
                 'code' => 'id',

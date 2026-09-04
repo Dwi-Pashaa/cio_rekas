@@ -20,7 +20,7 @@
         :paginator="$branch"
     >
         <x-slot:actions>
-            <x-ui.search-input placeholder="Cari nama cabang..." />
+            <x-ui.search-input placeholder="Cari nama atau No. WhatsApp cabang..." />
         </x-slot:actions>
 
         <table class="w-full text-left text-sm whitespace-nowrap">
@@ -28,6 +28,7 @@
                 <tr>
                     <th class="px-5 py-3.5 w-16 text-center">No</th>
                     <th class="px-5 py-3.5">Nama Cabang</th>
+                    <th class="px-5 py-3.5">No. WhatsApp Kasir/Cabang</th>
                     <th class="px-5 py-3.5">Tanggal Dibuat</th>
                     <th class="px-5 py-3.5 text-center w-36">Aksi</th>
                 </tr>
@@ -40,6 +41,15 @@
                         </td>
                         <td class="px-5 py-3.5">
                             <div class="font-bold text-slate-900">{{ $item->name }}</div>
+                        </td>
+                        <td class="px-5 py-3.5">
+                            @if($item->wa_number)
+                                <span class="badge bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded-pill font-monospace fw-semibold" style="font-size: 0.75rem;">
+                                    {{ $item->wa_number }}
+                                </span>
+                            @else
+                                <span class="text-slate-400 fst-italic text-xs">Belum diatur</span>
+                            @endif
                         </td>
                         <td class="px-5 py-3.5 text-xs text-slate-500">
                             {{ \Carbon\Carbon::parse($item->created_at)->format('d M Y H:i') }}
@@ -71,7 +81,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="4" class="px-5 py-12 text-center text-slate-400">
+                        <td colspan="5" class="px-5 py-12 text-center text-slate-400">
                             <x-icons.branch class="w-10 h-10 mx-auto mb-2 text-slate-300" />
                             <p class="text-sm font-medium">Belum ada data cabang</p>
                         </td>
@@ -92,16 +102,28 @@
             label="Nama Cabang" 
             name="name" 
             id="name" 
-            placeholder="Contoh: Cabang Pusat / Cabang Barat" 
+            placeholder="Contoh: Cabang Pacet / Cabang Mojokerto" 
             required 
         />
+
+        <div class="mt-3">
+            <x-ui.form-input 
+                label="No. WhatsApp Kasir / Cabang" 
+                name="wa_number" 
+                id="wa_number" 
+                placeholder="Contoh: 08xxxxxxxxxx (untuk notifikasi pesanan agent)" 
+            />
+            <small class="text-slate-500 text-xs mt-1 block">
+                Nomor ini akan menerima notifikasi WhatsApp otomatis setiap kali ada Agent yang membuat pesanan dari cabang ini.
+            </small>
+        </div>
 
         <x-slot:footer>
             <button type="button" class="px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-all cursor-pointer" data-bs-dismiss="modal">
                 Batal
             </button>
             <button type="button" id="storeBtn" class="px-4 py-2 text-sm font-semibold text-white bg-blue-600 rounded-xl hover:bg-blue-700 shadow-sm transition-all cursor-pointer">
-                Simpan
+                Simpan Cabang
             </button>
         </x-slot:footer>
     </x-ui.modal>
@@ -126,6 +148,7 @@
     $("#addBtn").click(function() {
         $("#modal-branchLabel").html("Tambah Cabang");
         $("#name").val("");
+        $("#wa_number").val("");
         $("#type").val("create");
         $("#id").val("");
     });
@@ -134,6 +157,7 @@
         let id = $("#id").val();
         let type = $("#type").val();
         let name = $("#name").val();
+        let wa_number = $("#wa_number").val();
 
         let url = (type === 'create') ? BASE + '/store' : BASE + `/${id}/update`;
         let method = (type === 'create') ? "POST" : "PUT";
@@ -141,15 +165,18 @@
         $.ajax({
             url: url,
             method: method,
-            data: { name: name },
+            data: { 
+                name: name,
+                wa_number: wa_number
+            },
         }).done(function(response) {
             if (response.errors) {
                 $.each(response.errors, function(index, value) {
-                    $("#name").addClass('border-rose-500 focus:ring-rose-500');
+                    $("#" + index).addClass('border-rose-500 focus:ring-rose-500');
                     $(".error_" + index).html(value);
 
                     setTimeout(() => {
-                        $("#name").removeClass('border-rose-500 focus:ring-rose-500');
+                        $("#" + index).removeClass('border-rose-500 focus:ring-rose-500');
                         $(".error_" + index).html('');
                     }, 3000);
                 });                
@@ -157,7 +184,7 @@
                 $("#modal-branch").modal('hide');
                 Toast.fire({
                     icon: response.status || 'success',
-                    title: response.message || 'Data berhasil disimpan.'
+                    title: response.message || 'Data cabang berhasil disimpan.'
                 });
 
                 setTimeout(() => {
@@ -180,6 +207,7 @@
             let data = response.data;
             $("#id").val(data.id);
             $("#name").val(data.name);
+            $("#wa_number").val(data.wa_number || "");
             $("#type").val("update");
             $("#modal-branch").modal('show');
         }).fail(function(jqXHR, textStatus, errorThrown) {

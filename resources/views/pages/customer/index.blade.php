@@ -47,7 +47,7 @@
                             name="search" 
                             value="{{ request('search') }}" 
                             class="form-control form-control-md border-start-0 border-slate-300 ps-1 py-2 text-slate-800" 
-                            placeholder="Cari nama, serial number, no telp, email, NIK..."
+                            placeholder="Cari nama, username, serial number, no telp, email..."
                             style="font-size: 0.925rem;"
                         />
                         @if(request('search'))
@@ -70,11 +70,11 @@
             <thead class="bg-light text-muted text-uppercase fs-7 fw-bold border-bottom">
                 <tr>
                     <th class="w-1 text-center py-3.5">No</th>
-                    <th class="py-3.5">Agent</th>
+                    <th class="py-3.5">Agent & Akun Login</th>
                     <th class="py-3.5">Serial Number</th>
                     <th class="py-3.5">Barang / Paket</th>
                     <th class="py-3.5 text-center">Limit</th>
-                    <th class="py-3.5 text-center">Tipe</th>
+                    <th class="py-3.5 text-center">Tipe Bayar</th>
                     <th class="py-3.5 text-center">Status</th>
                     <th class="py-3.5 text-center" style="min-width: 250px;">Aksi</th>
                 </tr>
@@ -87,7 +87,7 @@
                             {{ $loop->iteration + ($customers->firstItem() ? $customers->firstItem() - 1 : 0) }}
                         </td>
 
-                        {{-- Agent (Avatar + Nama + NIK + Telp + Email + Alamat) --}}
+                        {{-- Agent (Avatar + Nama + NIK + Username + Telp + Email + Alamat) --}}
                         <td>
                             <div class="d-flex align-items-center">
                                 <div class="w-10 h-10 rounded-circle bg-blue-50 text-blue-700 border border-blue-200 fw-bold d-flex align-items-center justify-center me-3 shrink-0 fs-6">
@@ -96,6 +96,11 @@
                                 <div class="overflow-hidden">
                                     <div class="d-flex align-items-center gap-2">
                                         <span class="fw-bold text-dark fs-6">{{ $item->name }}</span>
+                                        @if($item->user)
+                                            <span class="badge bg-blue-subtle text-blue-800 border border-blue-200 px-1.5 py-0.5 font-monospace" style="font-size: 0.68rem;" title="Username Login Agent">
+                                                <x-icons.users class="w-3 h-3 inline me-0.5" />{{ $item->user->username }}
+                                            </span>
+                                        @endif
                                         @if($item->nik)
                                             <span class="badge bg-light text-slate-600 border px-1.5 py-0.5 font-monospace" style="font-size: 0.68rem;" title="NIK: {{ $item->nik }}">
                                                 NIK: {{ $item->nik }}
@@ -157,11 +162,26 @@
                             </span>
                         </td>
 
-                        {{-- Tipe Pelanggan --}}
+                        {{-- Tipe Pembayaran Diizinkan (Cash / Transfer) --}}
                         <td class="text-center">
-                            <span class="badge bg-secondary-subtle text-secondary border px-2.5 py-1 rounded-pill">
-                                {{ optional($item->type)->name ?? '-' }}
-                            </span>
+                            @php
+                                $methods = (array) ($item->payment_methods ?? ['cash', 'transfer']);
+                            @endphp
+                            <div class="d-flex align-items-center justify-content-center flex-wrap gap-1">
+                                @if(in_array('cash', $methods))
+                                    <span class="badge bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-pill fw-semibold" style="font-size: 0.68rem;">
+                                        <x-icons.cash class="w-3 h-3 inline me-0.5" />Cash
+                                    </span>
+                                @endif
+                                @if(in_array('transfer', $methods))
+                                    <span class="badge bg-indigo-50 text-indigo-700 border border-indigo-200 px-2 py-0.5 rounded-pill fw-semibold" style="font-size: 0.68rem;">
+                                        <x-icons.receipt class="w-3 h-3 inline me-0.5" />Transfer
+                                    </span>
+                                @endif
+                                @if(empty($methods))
+                                    <span class="text-muted small fst-italic">Semua</span>
+                                @endif
+                            </div>
                         </td>
 
                         {{-- Status Pelanggan --}}
@@ -182,7 +202,7 @@
                             </span>
                         </td>
 
-                        {{-- Aksi (Ukuran Nyaman & Proporsional) --}}
+                        {{-- Aksi --}}
                         <td class="text-center">
                             <div class="d-flex align-items-center justify-content-center gap-1.5">
                                 {{-- Tombol Salin Link NFC --}}
@@ -284,6 +304,25 @@
                             <span class="invalid-feedback error_name"></span>
                         </div>
 
+                        {{-- Input Username & Password Login Akun Agent --}}
+                        <div class="col-md-6">
+                            <label for="username" class="form-label fw-bold text-muted small text-uppercase">Username Login <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light text-muted border-end-0">@</span>
+                                <input type="text" name="username" id="username" class="form-control form-control-md border-start-0 rounded-end-2" placeholder="Contoh: agent_budi">
+                            </div>
+                            <span class="invalid-feedback error_username d-block"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label for="password" class="form-label fw-bold text-muted small text-uppercase">
+                                Password Login <span class="text-danger" id="password_req_star">*</span>
+                            </label>
+                            <input type="password" name="password" id="password" class="form-control form-control-md rounded-2" placeholder="Minimal 6 karakter">
+                            <div class="small text-muted d-none mt-1" id="password_help_text" style="font-size: 0.72rem;">Kosongkan jika tidak ingin mengubah password akun.</div>
+                            <span class="invalid-feedback error_password d-block"></span>
+                        </div>
+
                         <div class="col-md-6">
                             <label for="telp" class="form-label fw-bold text-muted small text-uppercase">No. Telepon / WA <span class="text-danger">*</span></label>
                             <input type="text" name="telp" id="telp" class="form-control form-control-md rounded-2" placeholder="08xxxxxxxxxx">
@@ -347,6 +386,30 @@
                             <label for="address" class="form-label fw-bold text-muted small text-uppercase">Alamat <span class="text-danger">*</span></label>
                             <input type="text" name="address" id="address" class="form-control form-control-md rounded-2" placeholder="Alamat lengkap agent">
                             <span class="invalid-feedback error_address"></span>
+                        </div>
+
+                        {{-- 2 Checkbox Tipe Pembayaran (Cash & Transfer) --}}
+                        <div class="col-12">
+                            <label class="form-label fw-bold text-muted small text-uppercase d-block mb-1.5">
+                                Tipe Pembayaran Diizinkan <span class="text-danger">*</span>
+                            </label>
+                            <div class="d-flex align-items-center gap-4 p-3 bg-light rounded-3 border">
+                                <label class="form-check form-check-inline m-0 d-flex align-items-center gap-2 cursor-pointer">
+                                    <input class="form-check-input payment-method-check" type="checkbox" name="payment_methods[]" value="cash" id="pay_cash" checked>
+                                    <span class="form-check-label fw-bold text-dark fs-7 d-flex align-items-center gap-1.5">
+                                        <x-icons.cash class="w-4 h-4 text-emerald-600" />
+                                        Cash (Tunai)
+                                    </span>
+                                </label>
+                                <label class="form-check form-check-inline m-0 d-flex align-items-center gap-2 cursor-pointer">
+                                    <input class="form-check-input payment-method-check" type="checkbox" name="payment_methods[]" value="transfer" id="pay_transfer" checked>
+                                    <span class="form-check-label fw-bold text-dark fs-7 d-flex align-items-center gap-1.5">
+                                        <x-icons.receipt class="w-4 h-4 text-indigo-600" />
+                                        Transfer (Non-Tunai / Bank)
+                                    </span>
+                                </label>
+                            </div>
+                            <span class="invalid-feedback error_payment_methods d-block mt-1"></span>
                         </div>
                     </div>
                 </div>
@@ -503,9 +566,13 @@
     });
 
     $("#addBtn").click(function() {
-        $("#modalCustomerTitle").html("Tambah Pelanggan Baru");
+        $("#modalCustomerTitle").html("Tambah Agent Baru");
         $("#code").val("");
         $("#name").val("");
+        $("#username").val("");
+        $("#password").val("");
+        $("#password_req_star").removeClass("d-none");
+        $("#password_help_text").addClass("d-none");
         $("#telp").val("");
         $("#email").val("");
         $("#nik").val("");
@@ -514,9 +581,12 @@
         $("#limit").val("1");
         $("#types_id").val("");
         $("#status_id").val("");
+        $("#pay_cash").prop("checked", true);
+        $("#pay_transfer").prop("checked", true);
         $("#type").val("create");
         $("#id").val("");
         $(".form-control, .form-select").removeClass("is-invalid");
+        $(".invalid-feedback").html("");
     });
 
     $("#storeBtn").click(function() {
@@ -524,6 +594,8 @@
         let type = $("#type").val();
         let code = $("#code").val();
         let name = $("#name").val();
+        let username = $("#username").val();
+        let password = $("#password").val();
         let telp = $("#telp").val();
         let email = $("#email").val();
         let nik = $("#nik").val();
@@ -532,6 +604,12 @@
         let limit = $("#limit").val();
         let types_id = $("#types_id").val();
         let status_id = $("#status_id").val();
+
+        // Ambil pilihan checkbox tipe pembayaran
+        let payment_methods = [];
+        $(".payment-method-check:checked").each(function() {
+            payment_methods.push($(this).val());
+        });
 
         let url = (type === 'create') ? BASE + '/store' : BASE + `/${id}/update`;
         let method = (type === 'create') ? "POST" : "PUT";
@@ -542,6 +620,8 @@
             data: {
                 code: code,
                 name: name,
+                username: username,
+                password: password,
                 telp: telp,
                 email: email,
                 nik: nik,
@@ -549,29 +629,36 @@
                 products_id: products_id,
                 limit: limit,
                 types_id: types_id,
-                status_id: status_id
+                status_id: status_id,
+                payment_methods: payment_methods
             },
         }).done(function(response) {
             if (response.errors) {
                 $.each(response.errors, function(index, value) {
-                    $("#" + index).addClass('is-invalid');
-                    $(".error_" + index).html(value);
+                    let cleanIndex = index.replace('.', '_');
+                    $("#" + cleanIndex).addClass('is-invalid');
+                    $(".error_" + cleanIndex).html(value);
 
                     setTimeout(() => {
-                        $("#" + index).removeClass('is-invalid');
-                        $(".error_" + index).html('');
-                    }, 3500);
+                        $("#" + cleanIndex).removeClass('is-invalid');
+                        $(".error_" + cleanIndex).html('');
+                    }, 4000);
                 });                
-            } else {
+            } else if (response.code === 200) {
                 $("#modal-customer").modal('hide');
                 Toast.fire({
-                    icon: response.status || 'success',
+                    icon: 'success',
                     title: response.message || 'Data agent berhasil disimpan.'
                 });
 
                 setTimeout(() => {
                     window.location.reload();
                 }, 1000);
+            } else {
+                Toast.fire({
+                    icon: response.status || 'warning',
+                    title: response.message || 'Gagal memproses data.'
+                });
             }
         }).fail(function(jqXHR, textStatus, errorThrown) {
             console.log("Error:", textStatus, errorThrown);
@@ -590,6 +677,10 @@
             $("#id").val(data.id);
             $("#code").val(data.code);
             $("#name").val(data.name);
+            $("#username").val(data.user_username || (data.user ? data.user.username : ''));
+            $("#password").val("");
+            $("#password_req_star").addClass("d-none");
+            $("#password_help_text").removeClass("d-none");
             $("#telp").val(data.telp);
             $("#email").val(data.email || "");
             $("#nik").val(data.nik || "");
@@ -598,8 +689,15 @@
             $("#limit").val(data.limit);
             $("#types_id").val(data.types_id);
             $("#status_id").val(data.status_id);
+
+            // Centang checkbox tipe pembayaran
+            let methods = data.payment_methods || ['cash', 'transfer'];
+            $("#pay_cash").prop("checked", methods.includes('cash'));
+            $("#pay_transfer").prop("checked", methods.includes('transfer'));
+
             $("#type").val("update");
             $(".form-control, .form-select").removeClass("is-invalid");
+            $(".invalid-feedback").html("");
             $("#modal-customer").modal('show');
         }).fail(function(jqXHR, textStatus, errorThrown) {
             console.log("Error:", textStatus, errorThrown);
@@ -609,7 +707,7 @@
     function deleteItem(id) {
         Swal.fire({
             title: "Konfirmasi Hapus",
-            text: "Data agent ini akan dihapus secara permanen dari sistem.",
+            text: "Data agent dan akun loginnya akan dihapus secara permanen dari sistem.",
             icon: "warning",
             showCancelButton: true,
             confirmButtonColor: "#EF4444",

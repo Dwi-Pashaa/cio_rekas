@@ -158,7 +158,6 @@ class TransactionController extends Controller
         $validation = Validator::make($request->all(), [
             "customers_id" => "required",
             "products_id"  => "required",
-            "payment"      => "required",
             "total"        => "required",
         ]);
 
@@ -168,10 +167,12 @@ class TransactionController extends Controller
 
         try {
             $user = Auth::user();
-            $transaction = $this->transactionService->processCheckout($request->all(), $user);
+            $result = $this->transactionService->processCheckout($request->all(), $user);
+            $transaction = $result['transaction'];
+            $invoiceUrl = $result['invoice_url'] ?? null;
 
             // Hitung sisa stok cabang dan sisa stok produk setelah transaksi berhasil secara realtime
-            $targetBranchId = $user->branch_id ?? $transaction->branch_id;
+            $targetBranchId = $request->branch_id ?? ($user->branch_id ?? $transaction->branch_id);
             $updatedBranchStock = $targetBranchId ? (int) Product::where('branch_id', $targetBranchId)->sum('stock') : 0;
 
             $deductedProduct = Product::find($transaction->products_id);
@@ -181,9 +182,12 @@ class TransactionController extends Controller
                 'code'                  => 200,
                 'status'                => 'success',
                 'transaction'           => $transaction,
+                'invoice_url'           => $invoiceUrl,
+                'payment_method'        => $transaction->payment_method,
+                'payment_status'        => $transaction->payment_status,
                 'updated_branch_stock'  => $updatedBranchStock,
                 'updated_product_stock' => $updatedProductStock,
-                'message'               => 'Penjualan berhasil disimpan dan stok cabang otomatis berkurang!'
+                'message'               => 'Pesanan berhasil diproses dan stok cabang otomatis terpotong!'
             ]);
         } catch (Exception $e) {
             return response()->json(['code' => 400, 'status' => 'warning', 'message' => $e->getMessage()]);

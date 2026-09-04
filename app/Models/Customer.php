@@ -10,7 +10,25 @@ class Customer extends Model
 {
     use HasFactory;
     protected $table = 'customers';
-    protected $fillable = ['products_id', 'code', 'name', 'telp', 'email', 'nik', 'address', 'limit', 'types_id', 'status_id'];
+    protected $fillable = [
+        'user_id',
+        'products_id',
+        'code',
+        'name',
+        'telp',
+        'email',
+        'nik',
+        'address',
+        'limit',
+        'types_id',
+        'status_id',
+        'payment_methods',
+    ];
+
+    protected $casts = [
+        'payment_methods' => 'array',
+    ];
+
     protected $appends = ['encrypted_code', 'nfc_url'];
 
     /**
@@ -58,6 +76,11 @@ class Customer extends Model
             return '';
         }
         return route('transaksi.agent.create', ['token' => $this->encrypted_code]);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id', 'id');
     }
 
     public function product() 

@@ -18,7 +18,8 @@ class BranchController extends Controller
         $search = $request->search ?? null;
 
         $branch = Branch::when($search, function ($query, $search) {
-            return $query->where('name', 'like', "%$search%");
+            return $query->where('name', 'like', "%$search%")
+                ->orWhere('wa_number', 'like', "%$search%");
         })
             ->orderBy('id', 'DESC')
             ->paginate($sort);
@@ -32,22 +33,23 @@ class BranchController extends Controller
     public function store(Request $request)
     {
         $validation = Validator::make($request->all(), [
-            "name" => "required"
+            "name"      => "required|string",
+            "wa_number" => "nullable|string|max:50",
         ]);
 
         if ($validation->fails()) {
             return response()->json([
-                'code' => 400,
-                'status' => 'error',
+                'code'    => 400,
+                'status'  => 'error',
                 'message' => 'Opps ada yang belum di isi.',
-                'errors' => $validation->errors()
+                'errors'  => $validation->errors()
             ]);
         }
 
         $post = $request->all();
         Branch::create($post);
 
-        return response()->json(['code' => 200, 'status' => 'success', 'message' => 'Berhasil menyimpan data.']);
+        return response()->json(['code' => 200, 'status' => 'success', 'message' => 'Berhasil menyimpan data cabang.']);
     }
 
     /**
@@ -59,8 +61,8 @@ class BranchController extends Controller
 
         if (!$branch) {
             return response()->json([
-                'code' => 400,
-                'status' => 'error',
+                'code'    => 400,
+                'status'  => 'error',
                 'message' => 'Data Not Found.',
             ]);
         }
@@ -75,23 +77,32 @@ class BranchController extends Controller
     {
         $branch = Branch::find($id);
 
+        if (!$branch) {
+            return response()->json([
+                'code'    => 400,
+                'status'  => 'error',
+                'message' => 'Data Not Found.',
+            ]);
+        }
+
         $validation = Validator::make($request->all(), [
-            "name" => "required"
+            "name"      => "required|string",
+            "wa_number" => "nullable|string|max:50",
         ]);
 
         if ($validation->fails()) {
             return response()->json([
-                'code' => 400,
-                'status' => 'error',
+                'code'    => 400,
+                'status'  => 'error',
                 'message' => 'Opps ada yang belum di isi.',
-                'errors' => $validation->errors()
+                'errors'  => $validation->errors()
             ]);
         }
 
         $put = $request->all();
         $branch->update($put);
 
-        return response()->json(['code' => 200, 'status' => 'success', 'message' => 'Berhasil mengubah data.']);
+        return response()->json(['code' => 200, 'status' => 'success', 'message' => 'Berhasil mengubah data cabang.']);
     }
 
     /**
@@ -103,8 +114,8 @@ class BranchController extends Controller
 
         if (!$branch) {
             return response()->json([
-                'code' => 400,
-                'status' => 'error',
+                'code'    => 400,
+                'status'  => 'error',
                 'message' => 'Data Not Found.',
             ]);
         }

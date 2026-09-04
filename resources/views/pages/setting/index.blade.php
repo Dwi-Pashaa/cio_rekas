@@ -12,13 +12,13 @@
         <input type="hidden" name="id" id="id" value="{{ $usaha->id ?? '' }}">
 
         <div class="row g-4">
-            {{-- KOLOM KIRI: Profil Usaha & Struk Printer --}}
+            {{-- KOLOM KIRI: Profil Usaha & Pengaturan Kurir / Printer --}}
             <div class="col-lg-6 col-12 space-y-4">
                 <div class="card border-0 shadow-sm rounded-3">
                     <div class="card-header bg-white border-bottom py-3">
                         <div class="d-flex align-items-center gap-2">
                             <x-icons.settings class="w-5 h-5 text-primary" />
-                            <h5 class="card-title fw-bold text-dark m-0">Profil Toko & Printer Struk</h5>
+                            <h5 class="card-title fw-bold text-dark m-0">Profil Toko & Layanan</h5>
                         </div>
                     </div>
                     <div class="card-body p-4 space-y-3">
@@ -35,6 +35,24 @@
                             <input value="{{ old('address', $usaha->address ?? '') }}" type="text" name="address" id="address" class="form-control form-control-md rounded-2 @error('address') is-invalid @enderror" placeholder="Alamat lengkap toko / kantor">
                             @error('address')
                                 <span class="invalid-feedback">{{ $message }}</span>
+                            @enderror
+                        </div>
+
+                        {{-- Pengaturan Biaya Jasa Antar Kurir --}}
+                        <div class="form-group mb-3 p-3 bg-blue-50 border border-blue-200 rounded-3">
+                            <label for="delivery_fee" class="form-label fw-bold text-blue-900 small text-uppercase d-flex align-items-center gap-1.5">
+                                <x-icons.truck class="w-4 h-4 text-blue-600" />
+                                Biaya Jasa Antar Kurir ke Agent (Rp) <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white border-blue-300 font-bold text-slate-700">Rp</span>
+                                <input value="{{ old('delivery_fee', $usaha->delivery_fee ?? 0) }}" type="number" min="0" step="500" name="delivery_fee" id="delivery_fee" class="form-control form-control-md rounded-end-2 border-blue-300 font-monospace fw-bold @error('delivery_fee') is-invalid @enderror" placeholder="Contoh: 5000">
+                            </div>
+                            <small class="text-blue-700 mt-1 d-block" style="font-size: 0.75rem;">
+                                Biaya ini akan otomatis ditambahkan ke total transaksi ketika Agent memilih opsi <b>Diantar Kurir</b>.
+                            </small>
+                            @error('delivery_fee')
+                                <span class="invalid-feedback d-block">{{ $message }}</span>
                             @enderror
                         </div>
 
@@ -71,8 +89,9 @@
                 </div>
             </div>
 
-            {{-- KOLOM KANAN: Pengaturan Notifikasi (WhatsApp Mekari & Email SMTP) --}}
+            {{-- KOLOM KANAN: Pengaturan Notifikasi & Payment Gateway Xendit --}}
             <div class="col-lg-6 col-12 space-y-4">
+                {{-- 1. Card Notifikasi Transaksi --}}
                 <div class="card border-0 shadow-sm rounded-3">
                     <div class="card-header bg-white border-bottom py-3">
                         <div class="d-flex align-items-center justify-content-between">
@@ -91,7 +110,7 @@
                             <div class="d-flex align-items-center justify-content-between">
                                 <div>
                                     <div class="fw-bold text-dark fs-6">Notifikasi WhatsApp (Mekari Qontak)</div>
-                                    <div class="text-muted small">Kirim pesan WhatsApp otomatis ke nomor Agent dan Admin.</div>
+                                    <div class="text-muted small">Kirim pesan WhatsApp otomatis ke nomor Agent, Kasir Cabang, dan Admin.</div>
                                 </div>
                                 <div class="form-check form-switch m-0">
                                     <input class="form-check-input" type="checkbox" name="enable_wa_notification" id="enable_wa_notification" value="1" {{ old('enable_wa_notification', $usaha->enable_wa_notification ?? false) ? 'checked' : '' }} style="width: 2.5em; height: 1.3em; cursor: pointer;">
@@ -115,7 +134,7 @@
                         <div class="form-group">
                             <label for="admin_wa_number" class="form-label fw-bold text-muted small text-uppercase">Nomor WhatsApp Admin (Tembusan Transaksi)</label>
                             <input value="{{ old('admin_wa_number', $usaha->admin_wa_number ?? '') }}" type="text" name="admin_wa_number" id="admin_wa_number" class="form-control form-control-md rounded-2" placeholder="Contoh: 081234567890">
-                            <span class="text-muted small">Setiap kali ada transaksi baru, nomor admin ini akan menerima salinan notifikasi WhatsApp.</span>
+                            <span class="text-muted small">Menerima salinan setiap kali ada transaksi baru di sistem.</span>
                         </div>
 
                         {{-- Konfigurasi Mekari Qontak API --}}
@@ -147,6 +166,43 @@
                             </div>
                         </div>
 
+                    </div>
+                </div>
+
+                {{-- 2. Card Payment Gateway Xendit --}}
+                <div class="card border-0 shadow-sm rounded-3">
+                    <div class="card-header bg-white border-bottom py-3">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center gap-2">
+                                <x-icons.cash class="w-5 h-5 text-indigo-600" />
+                                <h5 class="card-title fw-bold text-dark m-0">Payment Gateway Xendit (Transfer)</h5>
+                            </div>
+                            <span class="badge bg-indigo-50 text-indigo-700 border border-indigo-200 px-2.5 py-1 rounded-pill text-xs fw-semibold">
+                                QRIS & Virtual Account
+                            </span>
+                        </div>
+                    </div>
+                    <div class="card-body p-4 space-y-3">
+                        <p class="text-muted small mb-3">
+                            Digunakan untuk menerima pembayaran transfer secara realtime (QRIS, VA Bank, E-Wallet) pada transaksi mandiri Agent.
+                        </p>
+
+                        <div class="form-group mb-3">
+                            <label for="xendit_secret_key" class="form-label fw-bold text-muted small text-uppercase">Xendit Secret API Key</label>
+                            <input value="{{ old('xendit_secret_key', $usaha->xendit_secret_key ?? '') }}" type="password" name="xendit_secret_key" id="xendit_secret_key" class="form-control form-control-md rounded-2 font-monospace" placeholder="xnd_development_... atau xnd_production_...">
+                            <span class="text-muted small">Didapatkan dari Xendit Dashboard &gt; Settings &gt; API Keys.</span>
+                        </div>
+
+                        <div class="form-group mb-3">
+                            <label for="xendit_webhook_token" class="form-label fw-bold text-muted small text-uppercase">Xendit Webhook Verification Token</label>
+                            <input value="{{ old('xendit_webhook_token', $usaha->xendit_webhook_token ?? '') }}" type="password" name="xendit_webhook_token" id="xendit_webhook_token" class="form-control form-control-md rounded-2 font-monospace" placeholder="Webhook verification token">
+                            <span class="text-muted small">Didapatkan dari Xendit Dashboard &gt; Settings &gt; Webhooks.</span>
+                        </div>
+
+                        <div class="p-2.5 bg-slate-50 border rounded-2 text-xs text-slate-700">
+                            <b>URL Webhook Callback:</b><br>
+                            <code class="text-primary font-monospace">{{ url('/api/xendit/callback') }}</code>
+                        </div>
                     </div>
                 </div>
 

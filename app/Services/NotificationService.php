@@ -25,9 +25,10 @@ class NotificationService
     {
         $usaha = Usaha::latest()->first();
         $results = [
-            'wa_agent' => null,
-            'wa_admin' => null,
-            'email_agent' => null,
+            'wa_agent'   => null,
+            'wa_branch'  => null,
+            'wa_admin'   => null,
+            'email_agent'=> null,
         ];
 
         if (!$usaha) {
@@ -37,6 +38,7 @@ class NotificationService
         // Load relasi yang dibutuhkan jika belum ter-load
         $transaction->loadMissing(['customer', 'product', 'casier', 'branch']);
         $customer = $transaction->customer;
+        $branch = $transaction->branch;
 
         // 1. NOTIFIKASI WHATSAPP (Mekari Qontak)
         if ($usaha->enable_wa_notification) {
@@ -57,7 +59,25 @@ class NotificationService
                 Log::info("[NotificationService] Skip WA Agent: No. telepon agent kosong (Trx #{$transaction->id})");
             }
 
-            // B. Kirim ke nomor WhatsApp Admin
+            // B. Kirim ke nomor WhatsApp Kasir Cabang Terpilih
+            if ($branch && !empty($branch->wa_number)) {
+                try {
+                    $results['wa_branch'] = $this->qontakService->sendTransactionNotification(
+                        $branch->wa_number,
+                        'Kasir ' . ($branch->name ?? 'Cabang'),
+                        $transaction,
+                        'branch'
+                    );
+                    Log::info("[NotificationService] Berhasil kirim WA ke Kasir Cabang {$branch->name} ({$branch->wa_number}) untuk Trx #{$transaction->id}");
+                } catch (Exception $e) {
+                    Log::error('[NotificationService] Error kirim WA ke Kasir Cabang: ' . $e->getMessage());
+                    $results['wa_branch'] = ['status' => false, 'message' => $e->getMessage()];
+                }
+            } else {
+                Log::info("[NotificationService] Skip WA Kasir Cabang: No. WhatsApp cabang belum diatur untuk Cabang " . ($branch->name ?? 'N/A'));
+            }
+
+            // C. Kirim ke nomor WhatsApp Admin
             if (!empty($usaha->admin_wa_number)) {
                 try {
                     $results['wa_admin'] = $this->qontakService->sendTransactionNotification(

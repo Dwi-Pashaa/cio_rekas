@@ -24,19 +24,23 @@ class UsahaController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            "id" => "nullable|exists:usahas,id",
-            "name" => "required|string",
-            "address" => "required|string",
-            "name_of_thermal" => "required|string",
-            "footer" => "required",
-            "image" => "nullable|mimes:png,jpg,jpeg,webp",
-            "admin_wa_number" => "nullable|string|max:50",
-            "qontak_token" => "nullable|string",
-            "qontak_channel_id" => "nullable|string|max:100",
-            "qontak_template_id" => "nullable|string|max:100",
+            "id"                   => "nullable|exists:usahas,id",
+            "name"                 => "required|string",
+            "address"              => "required|string",
+            "name_of_thermal"      => "required|string",
+            "footer"               => "required",
+            "delivery_fee"         => "nullable|numeric|min:0",
+            "image"                => "nullable|mimes:png,jpg,jpeg,webp",
+            "admin_wa_number"      => "nullable|string|max:50",
+            "qontak_token"         => "nullable|string",
+            "qontak_channel_id"    => "nullable|string|max:100",
+            "qontak_template_id"   => "nullable|string|max:100",
+            "xendit_secret_key"    => "nullable|string",
+            "xendit_webhook_token" => "nullable|string",
         ]);
         
         $post = $request->except('image');
+        $post['delivery_fee'] = $request->input('delivery_fee', 0) ?: 0;
         $post['enable_wa_notification'] = $request->boolean('enable_wa_notification');
         $post['enable_email_notification'] = $request->boolean('enable_email_notification');
         
@@ -53,6 +57,6 @@ class UsahaController extends Controller
             $post
         );
         
-        return back()->with('success', 'Data profil toko & pengaturan notifikasi berhasil disimpan.');
+        return back()->with('success', 'Data profil toko, biaya jasa antar & pengaturan payment gateway berhasil disimpan.');
     }
 }

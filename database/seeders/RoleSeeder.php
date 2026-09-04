@@ -15,9 +15,12 @@ class RoleSeeder extends Seeder
     public function run(): void
     {
         $adminRole = Role::firstOrCreate(['name' => 'Admin']);
-
         $permissions = Permission::all();
-
         $adminRole->syncPermissions($permissions);
+
+        // Role khusus Agent dengan 1 permission 'transaksi mandiri'
+        $agentRole = Role::firstOrCreate(['name' => 'Agent']);
+        $agentPermission = Permission::firstOrCreate(['name' => 'transaksi mandiri']);
+        $agentRole->syncPermissions([$agentPermission]);
     }
 }

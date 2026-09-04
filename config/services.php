@@ -32,11 +32,12 @@ return [
     ],
 
     'qontak' => [
-        'base_url'      => env('QONTAK_BASE_URL', 'https://service-chat.qontak.com'),
-        'token'         => env('QONTAK_TOKEN'),
-        'refresh_token' => env('QONTAK_REFRESH_TOKEN'),
-        'channel_id'    => env('QONTAK_CHANNEL_ID'),
-        'template_id'   => env('QONTAK_TEMPLATE_ID'),
+        'base_url'           => env('QONTAK_BASE_URL', 'https://service-chat.qontak.com'),
+        'token'              => env('QONTAK_TOKEN'),
+        'refresh_token'      => env('QONTAK_REFRESH_TOKEN'),
+        'channel_id'         => env('QONTAK_CHANNEL_ID'),
+        'template_id'        => env('QONTAK_TEMPLATE_ID'),
+        'xendit_template_id' => env('QONTAK_XENDIT_TEMPLATE_ID'),
     ],
 
 ];

@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Api\KasirXenditWebhookController;
+use App\Http\Controllers\Api\XenditWebhookController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -18,4 +20,5 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-
+// Endpoint Webhook Xendit & Multi-Web Central Router (Uang Masuk Kasir)
+Route::post('/xendit/callback', [KasirXenditWebhookController::class, 'handleCallback'])->name('api.xendit.callback');
